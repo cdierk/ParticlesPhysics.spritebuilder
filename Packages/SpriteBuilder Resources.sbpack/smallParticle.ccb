@@ -137,7 +137,7 @@
 				<key>value</key>
 				<array>
 					<string></string>
-					<string>ccbResources/cyanCircle.png</string>
+					<string>ccbResources/whiteCircle.png</string>
 				</array>
 			</dict>
 			<dict>
@@ -173,8 +173,6 @@
 				<array/>
 			</dict>
 		</array>
-		<key>selected</key>
-		<true/>
 	</dict>
 	<key>notes</key>
 	<array/>
