@@ -5,6 +5,8 @@
 @implementation MainScene{
     CCPhysicsNode *_physicsNode;
     CCNode *_bottomBorder;
+    CCEffectBrightness *_brightnessEffect;
+    CCEffectStack *_effectStack;
 }
 
 #define ARC4RANDOM_MAX 0x100000000
@@ -36,6 +38,9 @@
     UISwipeGestureRecognizer * swipeRight= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeRight)];
     swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeRight];
+    
+    _brightnessEffect = [CCEffectBrightness effectWithBrightness:sin(0)];
+    _effectStack = [[CCEffectStack alloc] initWithEffects:_brightnessEffect, nil];
 }
 
 // called on every touch in this scene
@@ -49,58 +54,84 @@
     
     [_physicsNode.space setDamping:DAMPING];
     
-    //remove damping after freeze delay and apply random force to all particles to get moving
+    //so that we don't fade in new particles
+    NSArray *currentChildren = [_physicsNode.children copy];
+    
+    //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
     [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
     [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];
-    
-    /*NSArray *currentChildren = [_physicsNode.children copy];
-    
-    //freezes all particles (ie by replacing with static particles)
-    for (CCNode *particle in currentChildren) {
-        if ([particle.name  isEqual: (@"largeParticle")]){
-            // loads the particle.cbb files we have set up in Spritebuilder
-            CCNode* staticLargeParticle = [CCBReader load:@"staticLargeParticle2"];
-            staticLargeParticle.scale = LARGE_PARTICLE_SCALE;
-            
-            // position the particles at previously specified particle locations
-            staticLargeParticle.position = ccp(particle.position.x, particle.position.y);
-            staticLargeParticle.name = @"largeParticle";
-            
-            [_physicsNode addChild:staticLargeParticle];
-            [_physicsNode removeChild:particle];
-            
-            [self performSelector:@selector(pushLargeParticle:) withObject:staticLargeParticle afterDelay:PARTICLE_DELAY];
-        } else if ([particle.name  isEqual: @"smallParticle"]){
-            // loads the particle.cbb files we have set up in Spritebuilder
-            CCNode* staticSmallParticle = [CCBReader load:@"staticSmallParticle2"];
-            staticSmallParticle.scale = SMALL_PARTICLE_SCALE;
-            staticSmallParticle.name = @"smallParticle";
-            
-            // position the particles at previously specified particle locations
-            staticSmallParticle.position = ccp(particle.position.x, particle.position.y);
-            
-            [_physicsNode addChild:staticSmallParticle];
-            [_physicsNode removeChild:particle];
-            
-            [self performSelector:@selector(pushSmallParticle:) withObject:staticSmallParticle afterDelay:PARTICLE_DELAY];
-        }
-    }*/
+    [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
     int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:20];
     int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:50];
     
+    [self fadeOutParticles];
+    
     while (numLargeParticles > 0){
         [self performSelector:@selector(launchLargeParticle) withObject:nil afterDelay:PARTICLE_DELAY];
-        //[self launchLargeParticle];
         numLargeParticles--;
     }
     
     while (numSmallParticles > 0){
         [self performSelector:@selector(launchSmallParticle) withObject:nil afterDelay:PARTICLE_DELAY];
-        //[self launchSmallParticle];
         numSmallParticles--;
     }
     
+}
+
+- (void) fadeOutParticles {
+    for (CCNode *particle in _physicsNode.children) {
+        [self reduceSaturation:1.0 withParticle:particle];
+    }
+}
+
+- (void) fadeInParticles: (NSArray *) children{
+    for (CCNode *particle in children) {
+        if ([particle.name isEqual:(@"largeParticle")] || [particle.name isEqual:(@"smallParticle")]){
+            [self increaseSaturation:0.05 withParticle:particle];
+        }
+    }
+}
+
+-(void) reduceSaturation: (float)currentSaturation withParticle:(CCNode *)particle {
+    float newSaturation = currentSaturation - 0.05;
+    
+    if ([particle.name  isEqual: (@"largeParticle")]){
+        UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:newSaturation brightness:0.66 alpha:1.0f];
+        particle.colorRGBA = [CCColor colorWithUIColor:teal];;
+    } else if ([particle.name  isEqual: @"smallParticle"]){
+        UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:newSaturation brightness:0.76 alpha:1.0f];
+        particle.colorRGBA = [CCColor colorWithUIColor:pink];;
+    }
+    
+    //recurse
+    if (newSaturation > 0.05){
+        double delayInSeconds = 0.1;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            [self reduceSaturation:newSaturation withParticle:particle];
+        });
+    }
+}
+
+-(void) increaseSaturation: (float)currentSaturation withParticle:(CCNode *)particle {
+    float newSaturation = currentSaturation + 0.05;
+    if ([particle.name  isEqual: (@"largeParticle")]){
+        UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:newSaturation brightness:0.66 alpha:1.0f];
+        particle.colorRGBA = [CCColor colorWithUIColor:teal];;
+    } else if ([particle.name  isEqual: @"smallParticle"]){
+        UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:newSaturation brightness:0.76 alpha:1.0f];
+        particle.colorRGBA = [CCColor colorWithUIColor:pink];;
+    }
+    
+    //recurse
+    if (newSaturation < 1.0){
+        double delayInSeconds = 0.1;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            [self increaseSaturation:newSaturation withParticle:particle];
+        });
+    }
 }
 
 - (void) launchSmallParticle {
@@ -123,14 +154,12 @@
     smallParticle.name = @"smallParticle";
     
     //set color
-    CCColor *pink = [CCColor colorWithRed: 251.0/255.0 green:90.0/255.0 blue:251.0/255.0 alpha:1];
-    smallParticle.colorRGBA = pink;
+    UIColor *pink = [UIColor colorWithHue: 300.0/360.0 saturation:1.0 brightness:0.76 alpha:1];
+    CCColor *ccpink = [CCColor colorWithUIColor:pink];
+    smallParticle.colorRGBA = ccpink;
     
     // add the particles to the physicsNode of this scene (because it has physics enabled)
     [_physicsNode addChild:smallParticle];
-    
-    //we don't need this anymore because all particles receive push
-    //[self performSelector:@selector(pushSmallParticle:) withObject:smallParticle afterDelay:PARTICLE_DELAY];
 }
 
 - (void)launchLargeParticle {
@@ -153,75 +182,17 @@
     largeParticle.name = @"largeParticle";
     
     //set color
-    CCColor *teal = [CCColor colorWithRed: 35.0/255.0 green:244.0/255.0 blue:255.0/255.0 alpha:1];
-    largeParticle.colorRGBA = teal;
+    UIColor *teal = [UIColor colorWithHue: 183.0/360.0 saturation:1.0 brightness:0.66 alpha:1];
+    CCColor *ccteal = [CCColor colorWithUIColor:teal];
+    largeParticle.colorRGBA = ccteal;
     
     // add the particles to the physicsNode of this scene (because it has physics enabled)
     [_physicsNode addChild:largeParticle];
-    
-    //we don't need this anymore because all particles receive push
-    //[self performSelector:@selector(pushLargeParticle:) withObject:largeParticle afterDelay:PARTICLE_DELAY];
-}
-
-- (void)pushLargeParticle: (CCNode *) largeParticle {
-    
-    /*// loads the dynamic particle.cbb files we have set up in Spritebuilder
-    CCNode* dynamicLargeParticle = [CCBReader load:@"largeParticle"];
-    dynamicLargeParticle.scale = LARGE_PARTICLE_SCALE;
-    
-    // position the particles at same location as previous particle
-    dynamicLargeParticle.position = largeParticle.position;
-    
-    //set color
-    CCColor *teal = [CCColor colorWithRed: 35.0/255.0 green:244.0/255.0 blue:255.0/255.0 alpha:1];
-    dynamicLargeParticle.colorRGBA = teal;
-    
-    // remove static particle and add dynamic particle
-    [_physicsNode removeChild:largeParticle];
-    [_physicsNode addChild:dynamicLargeParticle];*/
-    
-    // only apply force if less than 75 particles
-    //if ([_physicsNode.children count] < 75){
-        // manually create & apply a force to launch the particle
-        CGPoint launchDirection = ccp([self randomFloatBetween:-1.0 andLargerFloat:1.0], [self randomFloatBetween:-1.0 andLargerFloat:1.0]);
-        CGPoint force = ccpMult(launchDirection, 10000);
-        [largeParticle.physicsBody applyForce:force];
-    //}
-}
-
-- (void)pushSmallParticle: (CCNode *) smallParticle {
-    
-    // loads the dynamic particle.cbb files we have set up in Spritebuilder
-    CCNode* dynamicSmallParticle = [CCBReader load:@"smallParticle"];
-    dynamicSmallParticle.scale = SMALL_PARTICLE_SCALE;
-    
-    // position the particles at same location as previous particle
-    dynamicSmallParticle.position = smallParticle.position;
-    
-    //set color
-    CCColor *pink = [CCColor colorWithRed: 251.0/255.0 green:90.0/255.0 blue:251.0/255.0 alpha:1];
-    dynamicSmallParticle.colorRGBA = pink;
-    
-    //set name so that we can distinguish between large/small and remove it later
-    dynamicSmallParticle.name = @"smallParticle";
-    
-    // remove static particle and add dynamic particle
-    [_physicsNode removeChild:smallParticle];
-    [_physicsNode addChild:dynamicSmallParticle];
-    
-    // only apply force if less than 75 particles
-    //if ([_physicsNode.children count] < 75){
-        
-        // manually create & apply a force to launch the particle
-        CGPoint launchDirection = ccp([self randomFloatBetween:-1.0 andLargerFloat:1.0], [self randomFloatBetween:-1.0 andLargerFloat:1.0]);
-        CGPoint force = ccpMult(launchDirection, 10000);
-        [dynamicSmallParticle.physicsBody applyForce:force];
-    //}
 }
 
 // if device is shaken, apply a random force to all particles --doesn't work yet
 - (void)onShake {
-    //NSLog(@"shake from mainScene.m");
+
     for (CCNode *particle in _physicsNode.children) {
         particle.physicsBody.elasticity = 1.0;          //readd elasticity of each particle
         
@@ -257,132 +228,41 @@
     [_physicsNode.space setDamping:1.0f];
 }
 
+-(void) removeParticle: (CCNode *) particle {
+    [_physicsNode removeChild:particle];
+}
+
 //removes a random number of particles from the scene
 -(void) swipeLeft {
     
-    NSArray *currentChildren = [_physicsNode.children copy];
+    NSMutableArray *currentChildren = [_physicsNode.children copy];
     
     [_physicsNode.space setDamping:DAMPING];
     
-    //remove damping after particle delay
+    //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
     [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
-    
-    //freezes all particles (ie by replacing with static particles)
-    /*for (CCNode *particle in currentChildren) {
-        if ([particle.name  isEqual: (@"largeParticle")]){
-            // loads the particle.cbb files we have set up in Spritebuilder
-            CCNode* staticLargeParticle = [CCBReader load:@"staticLargeParticle2"];
-            staticLargeParticle.scale = LARGE_PARTICLE_SCALE;
-            staticLargeParticle.name = @"largeParticle";
-            
-            
-            // position the particles at previously specified particle locations
-            staticLargeParticle.position = ccp(particle.position.x, particle.position.y);
-            
-            [_physicsNode addChild:staticLargeParticle];
-            [_physicsNode removeChild:particle];
-        } else if ([particle.name  isEqual: @"smallParticle"]){
-            // loads the particle.cbb files we have set up in Spritebuilder
-            CCNode* staticSmallParticle = [CCBReader load:@"staticSmallParticle2"];
-            staticSmallParticle.scale = SMALL_PARTICLE_SCALE;
-            staticSmallParticle.name = @"smallParticle";
-            
-            // position the particles at previously specified particle locations
-            staticSmallParticle.position = ccp(particle.position.x, particle.position.y);
-            
-            [_physicsNode addChild:staticSmallParticle];
-            [_physicsNode removeChild:particle];
-        }
-    }*/
+    [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];
+    [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
     int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:20];
     int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:50];
     
+    [self fadeOutParticles];
+    
     for (int i = 0; i < numLargeParticles; i++){
         CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
         
-        /*
-        //add a static particle in it's place
-        // loads the dynamic particle.cbb files we have set up in Spritebuilder
-        CCNode* staticLargeParticle2 = [CCBReader load:@"staticLargeParticle2"];
-        staticLargeParticle2.scale = LARGE_PARTICLE_SCALE;
-        
-        // position the particles at same location as previous particle
-        staticLargeParticle2.position = oneLargeParticle.position;
-        
-        // remove dynamic particle and add static particle
-        [_physicsNode removeChild:oneLargeParticle];
-        [_physicsNode addChild:staticLargeParticle2];
-        
-        // remove static particle after 3 seconds
-        [_physicsNode performSelector:@selector(removeChild:) withObject:staticLargeParticle2 afterDelay:PARTICLE_DELAY];
-        */
-         
-        // load particle effect
-        CCParticleSystem *explosion = (CCParticleSystem *)[CCBReader load:@"ParticleExplosion"];
-        // make the particle effect clean itself up, once it is completed
-        explosion.autoRemoveOnFinish = TRUE;
-        explosion.duration = EXPLOSION_LENGTH;
-        
-        explosion.scale = LARGE_PARTICLE_SCALE;
-        
-        // place the particle effect on the particles position
-        //explosion.position = staticLargeParticle2.position;
-        // add the particle effect to the same node the particle is on
-        //[staticLargeParticle2.parent performSelector:@selector(addChild:) withObject:explosion afterDelay:PARTICLE_DELAY];
-        
-        explosion.position = oneLargeParticle.position;
-        [oneLargeParticle.parent addChild:explosion];
+        //[self performSelector:@selector(removeParticle:) withObject:oneLargeParticle afterDelay:PARTICLE_DELAY];
+        //[currentChildren removeObject:oneLargeParticle];
         [_physicsNode removeChild:oneLargeParticle];
     }
     
     for (int i = 0; i < numSmallParticles; i++){
         CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
-        
-        /*
-        //add a static particle in it's place
-        // loads the dynamic particle.cbb files we have set up in Spritebuilder
-        CCNode* staticSmallParticle2 = [CCBReader load:@"staticSmallParticle2"];
-        staticSmallParticle2.scale = SMALL_PARTICLE_SCALE;
-        
-        // position the particles at same location as previous particle
-        staticSmallParticle2.position = oneSmallParticle.position;
-        
-        // remove dynamic particle and add static particle
+
+        //[self performSelector:@selector(removeParticle:) withObject:oneSmallParticle afterDelay:PARTICLE_DELAY];
+        //[currentChildren removeObject:oneSmallParticle];
         [_physicsNode removeChild:oneSmallParticle];
-        [_physicsNode addChild:staticSmallParticle2];
-        
-        // remove static particle after 3 seconds
-        [_physicsNode performSelector:@selector(removeChild:) withObject:staticSmallParticle2 afterDelay:PARTICLE_DELAY];
-         */
-        
-        // load particle effect
-        CCParticleSystem *explosion = (CCParticleSystem *)[CCBReader load:@"smallParticleExplosion"];
-        // make the particle effect clean itself up, once it is completed
-        explosion.autoRemoveOnFinish = TRUE;
-        explosion.duration = EXPLOSION_LENGTH;
-        
-        explosion.scale = SMALL_PARTICLE_SCALE;
-        
-        // place the particle effect on the particles position
-        //explosion.position = staticLargeParticle2.position;
-        // add the particle effect to the same node the particle is on
-        //[staticLargeParticle2.parent performSelector:@selector(addChild:) withObject:explosion afterDelay:PARTICLE_DELAY];
-        
-        explosion.position = oneSmallParticle.position;
-        [oneSmallParticle.parent addChild:explosion];
-        [_physicsNode removeChild:oneSmallParticle];
-    }
-    
-    currentChildren = [_physicsNode.children copy];
-    
-    //get particles moving again
-    for (CCNode *particle in currentChildren) {
-        if ([particle.name  isEqual: (@"largeParticle")]){
-            [self performSelector:@selector(pushLargeParticle:) withObject:particle afterDelay:PARTICLE_DELAY];
-        } else if ([particle.name  isEqual: @"smallParticle"]){
-            [self performSelector:@selector(pushSmallParticle:) withObject:particle afterDelay:PARTICLE_DELAY];
-        }
     }
 }
 

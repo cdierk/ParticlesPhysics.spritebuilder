@@ -9,10 +9,6 @@
 /* Begin PBXBuildFile section */
 		455D57C01AD48782008A95FD /* largeParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57BF1AD48782008A95FD /* largeParticle.m */; };
 		455D57C71AD48794008A95FD /* smallParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57C61AD48794008A95FD /* smallParticle.m */; };
-		455D58021AE829B4008A95FD /* staticLargeParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D58011AE829B4008A95FD /* staticLargeParticle.m */; };
-		455D58051AE829D6008A95FD /* staticSmallParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D58041AE829D6008A95FD /* staticSmallParticle.m */; };
-		455D58131AF02638008A95FD /* staticSmallParticle2.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D58121AF02638008A95FD /* staticSmallParticle2.m */; };
-		455D58181AF0264B008A95FD /* staticLargeParticle2.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D58171AF0264B008A95FD /* staticLargeParticle2.m */; };
 		5B121030197484FA004C1E1D /* ParticlesPhysicsActivity.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B12102F197484FA004C1E1D /* ParticlesPhysicsActivity.m */; };
 		5B121038197487F2004C1E1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B737893E1807617C0076A88C /* AppDelegate.m */; };
 		7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */ = {isa = PBXBuildFile; fileRef = B7378993180767190076A88C /* MainScene.m */; };
@@ -159,14 +155,6 @@
 		455D57BF1AD48782008A95FD /* largeParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = largeParticle.m; sourceTree = "<group>"; };
 		455D57C51AD48794008A95FD /* smallParticle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = smallParticle.h; sourceTree = "<group>"; };
 		455D57C61AD48794008A95FD /* smallParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = smallParticle.m; sourceTree = "<group>"; };
-		455D58001AE829B4008A95FD /* staticLargeParticle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticLargeParticle.h; sourceTree = "<group>"; };
-		455D58011AE829B4008A95FD /* staticLargeParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = staticLargeParticle.m; sourceTree = "<group>"; };
-		455D58031AE829D6008A95FD /* staticSmallParticle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticSmallParticle.h; sourceTree = "<group>"; };
-		455D58041AE829D6008A95FD /* staticSmallParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = staticSmallParticle.m; sourceTree = "<group>"; };
-		455D58111AF02638008A95FD /* staticSmallParticle2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticSmallParticle2.h; sourceTree = "<group>"; };
-		455D58121AF02638008A95FD /* staticSmallParticle2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = staticSmallParticle2.m; sourceTree = "<group>"; };
-		455D58161AF0264B008A95FD /* staticLargeParticle2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticLargeParticle2.h; sourceTree = "<group>"; };
-		455D58171AF0264B008A95FD /* staticLargeParticle2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = staticLargeParticle2.m; sourceTree = "<group>"; };
 		5B12100919748273004C1E1D /* libEGL.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libEGL.so; path = /usr/lib/armv7a/libEGL.so; sourceTree = SDKROOT; };
 		5B12100F197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
 		5B121011197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
@@ -458,14 +446,6 @@
 				455D57C61AD48794008A95FD /* smallParticle.m */,
 				455D57BE1AD48782008A95FD /* largeParticle.h */,
 				455D57BF1AD48782008A95FD /* largeParticle.m */,
-				455D58001AE829B4008A95FD /* staticLargeParticle.h */,
-				455D58011AE829B4008A95FD /* staticLargeParticle.m */,
-				455D58031AE829D6008A95FD /* staticSmallParticle.h */,
-				455D58041AE829D6008A95FD /* staticSmallParticle.m */,
-				455D58111AF02638008A95FD /* staticSmallParticle2.h */,
-				455D58161AF0264B008A95FD /* staticLargeParticle2.h */,
-				455D58171AF0264B008A95FD /* staticLargeParticle2.m */,
-				455D58121AF02638008A95FD /* staticSmallParticle2.m */,
 				7A40362019DDEF0D007B6E8F /* Platforms */,
 				B7378992180767190076A88C /* MainScene.h */,
 				B7378993180767190076A88C /* MainScene.m */,
@@ -846,13 +826,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				455D58131AF02638008A95FD /* staticSmallParticle2.m in Sources */,
-				455D58181AF0264B008A95FD /* staticLargeParticle2.m in Sources */,
-				455D58051AE829D6008A95FD /* staticSmallParticle.m in Sources */,
 				B73789871807631A0076A88C /* main.m in Sources */,
 				455D57C71AD48794008A95FD /* smallParticle.m in Sources */,
 				455D57C01AD48782008A95FD /* largeParticle.m in Sources */,
-				455D58021AE829B4008A95FD /* staticLargeParticle.m in Sources */,
 				7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */,
 				5B121038197487F2004C1E1D /* AppDelegate.m in Sources */,
 			);
