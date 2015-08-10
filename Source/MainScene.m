@@ -7,6 +7,8 @@
     CCNode *_bottomBorder;
     CCEffectBrightness *_brightnessEffect;
     CCEffectStack *_effectStack;
+    CCLabelTTF *_largeLabel;
+    CCLabelTTF *_smallLabel;
 }
 
 #define ARC4RANDOM_MAX 0x100000000
@@ -15,7 +17,12 @@
 #define PARTICLE_DELAY 3.0
 #define FREEZE_DELAY 6.0
 #define EXPLOSION_LENGTH 3.0
-#define DAMPING 0.3f
+#define DAMPING 0.2f
+#define PARTICLE_BASE_SIZE 24.0
+
+BOOL isStacked = false;
+int currentLargeParticles = 0.0;
+int currentSmallParticles = 0.0;
 
 // is called when CCB file has completed loading
 - (void)didLoadFromCCB {
@@ -59,11 +66,15 @@
     
     //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
     [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
-    [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];
+    
+    if (!isStacked) [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];   //only kick start new particles if not stacked
     [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
     int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:20];
     int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:50];
+    
+    currentLargeParticles += numLargeParticles;
+    currentSmallParticles += numSmallParticles;
     
     [self fadeOutParticles];
     
@@ -76,6 +87,8 @@
         [self performSelector:@selector(launchSmallParticle) withObject:nil afterDelay:PARTICLE_DELAY];
         numSmallParticles--;
     }
+    
+    if (isStacked) [self performSelector:@selector(stackParticles) withObject:nil afterDelay:PARTICLE_DELAY]; //restack new particles if stacked
     
 }
 
@@ -106,7 +119,7 @@
     
     //recurse
     if (newSaturation > 0.05){
-        double delayInSeconds = 0.1;
+        double delayInSeconds = 0.05;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             [self reduceSaturation:newSaturation withParticle:particle];
@@ -126,7 +139,7 @@
     
     //recurse
     if (newSaturation < 1.0){
-        double delayInSeconds = 0.1;
+        double delayInSeconds = 0.05;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             [self increaseSaturation:newSaturation withParticle:particle];
@@ -192,9 +205,15 @@
 
 // if device is shaken, apply a random force to all particles --doesn't work yet
 - (void)onShake {
+    
+    [self removeDamping];
 
     for (CCNode *particle in _physicsNode.children) {
         particle.physicsBody.elasticity = 1.0;          //readd elasticity of each particle
+        
+        if ([particle.name isEqual:(@"smallParticle")]){        //decrease size of small particle
+            particle.scale = SMALL_PARTICLE_SCALE;
+        }
         
         // manually create & apply a force to launch the particle
         CGPoint launchDirection = ccp([self randomFloatBetween:-1.0 andLargerFloat:1.0], [self randomFloatBetween:-1.0 andLargerFloat:1.0]);
@@ -204,24 +223,124 @@
     
     _physicsNode.gravity = ccp(0,0);                //remove gravity
     _bottomBorder.physicsBody.elasticity = 1.0;         //add elasticity of bottom border
+    
+    isStacked = false;
+    
+    if ([_physicsNode.children containsObject:_largeLabel]){
+        [_physicsNode removeChild:_largeLabel];
+        [_physicsNode removeChild:_smallLabel];
+    }
 }
 
 - (float)randomFloatBetween:(float)num1 andLargerFloat:(float)num2 {
     return ((float)arc4random() / ARC4RANDOM_MAX) * (num2-num1) + num1;
 }
 
+- (void) stackParticles {
+    [_physicsNode removeChild:_largeLabel];
+    [_physicsNode removeChild:_smallLabel];
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    //CGFloat screenHeight = screenRect.size.height;
+    CGFloat division = screenWidth/2;
+    
+    CGFloat currentLargePositionX = PARTICLE_BASE_SIZE / 2;
+    CGFloat currentLargePositionY = PARTICLE_BASE_SIZE / 2;
+    
+    CGFloat currentSmallPositionX = division + PARTICLE_BASE_SIZE / 2;
+    CGFloat currentSmallPositionY = PARTICLE_BASE_SIZE/ 2;
+    
+    for (CCNode *particle in _physicsNode.children) {
+        if ([particle.name isEqual:(@"smallParticle")]){
+            CGPoint currentLocation = ccp(currentSmallPositionX, currentSmallPositionY);
+            particle.position = currentLocation;
+            
+            currentSmallPositionX = currentSmallPositionX + PARTICLE_BASE_SIZE;
+            if (currentSmallPositionX > screenWidth - (PARTICLE_BASE_SIZE / 2)){        //extends off side of screen
+                currentSmallPositionX = division + PARTICLE_BASE_SIZE / 2;
+                currentSmallPositionY = currentSmallPositionY + PARTICLE_BASE_SIZE; //move up a row
+            }
+        }
+        if ([particle.name isEqual:(@"largeParticle")]){
+            CGPoint currentLocation = ccp(currentLargePositionX, currentLargePositionY);
+            particle.position = currentLocation;
+            
+            currentLargePositionX = currentLargePositionX + PARTICLE_BASE_SIZE;
+            if (currentLargePositionX > division - (PARTICLE_BASE_SIZE / 2)){        //extends off side of screen
+                currentLargePositionX = PARTICLE_BASE_SIZE / 2;
+                currentLargePositionY = currentLargePositionY + PARTICLE_BASE_SIZE; //move up a row
+            }
+        }
+    }
+    
+    _largeLabel = [CCLabelTTF labelWithString:[NSString stringWithFormat:@"%d", currentLargeParticles] fontName:@"Arial" fontSize:16.0f];
+    _largeLabel.position = ccp(division/2, currentLargePositionY + PARTICLE_BASE_SIZE);
+    _largeLabel.physicsBody = [CCPhysicsBody bodyWithRect:(CGRect){CGPointZero, _largeLabel.contentSize} cornerRadius:0];
+    _largeLabel.color = [CCColor colorWithUIColor:[UIColor colorWithHue:183.0/360.0 saturation:1.0f brightness:0.66 alpha:1.0f]];
+    
+    _smallLabel = [CCLabelTTF labelWithString:[NSString stringWithFormat:@"%d", currentSmallParticles] fontName:@"Arial" fontSize:16.0f];
+    _smallLabel.position = ccp(division/2 + division, currentSmallPositionY + PARTICLE_BASE_SIZE);
+    _smallLabel.physicsBody = [CCPhysicsBody bodyWithRect:(CGRect){CGPointZero, _smallLabel.contentSize} cornerRadius:0];
+    _smallLabel.color = [CCColor colorWithUIColor:[UIColor colorWithHue:300.0/360.0 saturation:1.0f brightness:0.76 alpha:1.0f]];
+    
+    [_physicsNode addChild:_largeLabel];      //going to cause problems when we remove children
+    [_physicsNode addChild:_smallLabel];      //going to cause problems when we remove children
+    
+    isStacked = true;
+}
+
 - (void)swipeDown {
     CCLOG(@"swipeDown");
     
-    _physicsNode.gravity = ccp(0,-10000);                //add gravity
+    [_physicsNode.space setDamping:0.0f];        //reduce movement
+    
+    [self performSelector:@selector(stackParticles) withObject:nil afterDelay:0.1];
+    
+    /*_physicsNode.gravity = ccp(0,-1000);                //add gravity
     _bottomBorder.physicsBody.elasticity = 0.0;         //remove elasticity of bottom border
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    //CGFloat screenHeight = screenRect.size.height;
+    CGFloat division = screenWidth/2;
     
     for (CCNode *particle in _physicsNode.children) {
         particle.physicsBody.elasticity = 0.0;          //remove elasticity of each particle
+        
+        if ([particle.name isEqual:(@"smallParticle")]){        //increase size of small particle
+            
+            particle.scale = LARGE_PARTICLE_SCALE;
+            
+            if (particle.position.x < division){
+                // manually create & apply a force to launch the particle
+                CGPoint launchDirection = ccp(1.0, 0);
+                CGPoint force = ccpMult(launchDirection, 100000);
+                [particle.physicsBody applyForce:force];
+            }
+        }
+        if ([particle.name isEqual:(@"largeParticle")]){        //increase size of large particle
+            if (particle.position.x > division){
+                // manually create & apply a force to launch the particle
+                CGPoint launchDirection = ccp(-1.0, 0);
+                CGPoint force = ccpMult(launchDirection, 100000);
+                [particle.physicsBody applyForce:force];
+            }
+        }
+        
+    }
+    
+    for (CCNode *particle in _physicsNode.children) {
+        if ([particle.name isEqual:(@"smallParticle")]){
+            
+        }
+        if ([particle.name isEqual:(@"largeParticle")]){
+            
+        }
     }
     
     // to affect recently added particles
-    [self performSelector:@selector(affectNewParticles) withObject:nil afterDelay:PARTICLE_DELAY];
+    [self performSelector:@selector(affectNewParticles) withObject:nil afterDelay:PARTICLE_DELAY];*/
 }
 
 - (void) removeDamping {
@@ -233,6 +352,7 @@
 }
 
 //removes a random number of particles from the scene
+//right now removes them right away--after a delay would be better
 -(void) swipeLeft {
     
     NSMutableArray *currentChildren = [_physicsNode.children copy];
@@ -241,13 +361,28 @@
     
     //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
     [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
-    [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];
+    if (!isStacked) [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];       //only kick start if not stacked
     [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
-    int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:20];
-    int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:50];
+    int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:MAX(20, currentLargeParticles)];
+    int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:MAX(50, currentSmallParticles)];
+    
+    currentLargeParticles -= numLargeParticles;
+    currentSmallParticles -= numSmallParticles;
     
     [self fadeOutParticles];
+    
+    /*/will produce errors if you try to remove more particles than there are
+    while (numLargeParticles > 0 && numSmallParticles > 0){
+        CCNode *lastChild = _physicsNode.children.lastObject;        //so that top of stacks are removed (instead of bottom)
+        if ([lastChild.name isEqual:(@"largeParticle")]){
+            numLargeParticles--;
+        }
+        else if ([lastChild.name isEqual:(@"smallParticle")]){
+            numSmallParticles--;
+        }
+        [_physicsNode removeChild:lastChild];
+    }*/
     
     for (int i = 0; i < numLargeParticles; i++){
         CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
@@ -264,6 +399,8 @@
         //[currentChildren removeObject:oneSmallParticle];
         [_physicsNode removeChild:oneSmallParticle];
     }
+    
+    if (isStacked) [self stackParticles];
 }
 
 - (void)affectNewParticles{
