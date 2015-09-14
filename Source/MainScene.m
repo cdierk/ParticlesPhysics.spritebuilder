@@ -1,15 +1,19 @@
 #import "MainScene.h"
 #include <stdlib.h>
 #import "CCPhysics+ObjectiveChipmunk.h"
+#import "ScanViewController.h"
 
 @implementation MainScene{
-    CCPhysicsNode *_physicsNode;
+    //CCPhysicsNode *_physicsNode;
     CCNode *_bottomBorder;
     CCEffectBrightness *_brightnessEffect;
     CCEffectStack *_effectStack;
     CCLabelTTF *_largeLabel;
     CCLabelTTF *_smallLabel;
 }
+
+@synthesize rfduino;
+@synthesize _physicsNode;
 
 #define ARC4RANDOM_MAX 0x100000000
 #define LARGE_PARTICLE_SCALE 0.5
@@ -19,15 +23,18 @@
 #define EXPLOSION_LENGTH 3.0
 #define DAMPING 0.2f
 #define PARTICLE_BASE_SIZE 24.0
+#define PARTICLE_CHECKING_DELAY 10.0
 
 BOOL isStacked = false;
-int currentLargeParticles = 0.0;
-int currentSmallParticles = 0.0;
+int currentLargeParticles;
+int currentSmallParticles;
 
 // is called when CCB file has completed loading
 - (void)didLoadFromCCB {
     // tell this scene to accept touches
     self.userInteractionEnabled = TRUE;
+    
+    //[rfduino setDelegate:self];
     
     _physicsNode.gravity = ccp(0,0);            //set gravity to 0 initially
     
@@ -48,6 +55,60 @@ int currentSmallParticles = 0.0;
     
     _brightnessEffect = [CCEffectBrightness effectWithBrightness:sin(0)];
     _effectStack = [[CCEffectStack alloc] initWithEffects:_brightnessEffect, nil];
+    
+    currentLargeParticles = 0;
+    currentSmallParticles = 0;
+    
+    [self checkDevice];
+}
+
+- (void) checkDevice {
+    NSLog(@"Checking device: %@", rfduino);
+    NSLog(@"Physics node: %@", _physicsNode);
+    if (rfduino.advertisementData){
+        NSString *advertising = @"";
+        if (rfduino.advertisementData) {
+            advertising = [[NSString alloc] initWithData:rfduino.advertisementData encoding:NSUTF8StringEncoding];
+            NSLog(@"advertisement: %@", advertising);
+        }
+        
+        int numLargeParticles = [[advertising substringToIndex:4] intValue];
+        int numSmallParticles = [[advertising substringFromIndex:4] intValue];
+        NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
+        
+        NSLog(@"Physics node: %@", _physicsNode);
+        
+        [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
+    }
+    else {
+        NSLog(@"no connected rfduino found");
+    }
+    
+    //recursive so always checking
+    [self performSelector:@selector(checkDevice) withObject:nil afterDelay:PARTICLE_CHECKING_DELAY];
+}
+
+- (void) log:(RFduino *)rfduino_instance {
+    /*NSString *advertising = @"";
+    if (rfduino_instance.advertisementData) {
+        advertising = [[NSString alloc] initWithData:rfduino_instance.advertisementData encoding:NSUTF8StringEncoding];
+        NSLog(@"advertisement: %@", advertising);
+    }
+    
+    int numLargeParticles = [[advertising substringToIndex:4] intValue];
+    int numSmallParticles = [[advertising substringFromIndex:4] intValue];
+    NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
+    
+    NSLog(@"Physics node: %@", _physicsNode);
+    
+    [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
+    
+    //recursive so always checking
+    [self performSelector:@selector(log:) withObject:rfduino_instance afterDelay:PARTICLE_CHECKING_DELAY];*/
+    rfduino = rfduino_instance;
+    NSLog(@"log: rfduino is %@", rfduino);
+    
+    [self checkDevice];
 }
 
 // called on every touch in this scene
@@ -58,6 +119,14 @@ int currentSmallParticles = 0.0;
 
 // swipe right recognizer -- adds a random number of particles to the scene
 - (void) swipeRight {
+    int numLargeParticles = (int)[self randomFloatBetween:currentLargeParticles andLargerFloat:currentLargeParticles + 50];            //number larger than current
+    int numSmallParticles = (int)[self randomFloatBetween:currentSmallParticles andLargerFloat:currentSmallParticles + 100];            //number larger than current
+   
+    [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
+}
+
+- (void) updateLargeParticles:(int)numLargeParticles andSmallParticles:(int)numSmallParticles{
+    NSLog(@"updateLargeParticles: %d, updateSmallParticles: %d", numLargeParticles, numSmallParticles);
     
     [_physicsNode.space setDamping:DAMPING];
     
@@ -70,26 +139,34 @@ int currentSmallParticles = 0.0;
     if (!isStacked) [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];   //only kick start new particles if not stacked
     [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
-    int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:20];
-    int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:50];
-    
-    currentLargeParticles += numLargeParticles;
-    currentSmallParticles += numSmallParticles;
+    NSLog(@"currents: %d, %d", currentLargeParticles, currentSmallParticles);
     
     [self fadeOutParticles];
     
-    while (numLargeParticles > 0){
+    while (numLargeParticles > currentLargeParticles) {                 //need to add more
         [self performSelector:@selector(launchLargeParticle) withObject:nil afterDelay:PARTICLE_DELAY];
-        numLargeParticles--;
+        currentLargeParticles++;
     }
     
-    while (numSmallParticles > 0){
+    while (numSmallParticles > currentSmallParticles){                  //need to add more
         [self performSelector:@selector(launchSmallParticle) withObject:nil afterDelay:PARTICLE_DELAY];
-        numSmallParticles--;
+        currentSmallParticles++;
     }
     
-    if (isStacked) [self performSelector:@selector(stackParticles) withObject:nil afterDelay:PARTICLE_DELAY]; //restack new particles if stacked
+    while (numLargeParticles < currentLargeParticles){                 //remove particles
+        CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
+        [_physicsNode removeChild:oneLargeParticle];
+        currentLargeParticles--;
+    }
     
+    while (numSmallParticles < currentSmallParticles){
+        CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
+        [_physicsNode removeChild:oneSmallParticle];
+        currentSmallParticles--;
+    }
+    
+    if (isStacked) [self stackParticles];
+    if (isStacked) [self performSelector:@selector(stackParticles) withObject:nil afterDelay:PARTICLE_DELAY]; //restack new particles if stacked
 }
 
 - (void) fadeOutParticles {
@@ -176,11 +253,17 @@ int currentSmallParticles = 0.0;
 }
 
 - (void)launchLargeParticle {
+    NSLog(@"large launched");
+    
     // loads the particle.cbb files we have set up in Spritebuilder
     CCNode* largeParticle = [CCBReader load:@"largeParticle"];
     largeParticle.scale = LARGE_PARTICLE_SCALE;
+    
+    NSLog(@"Large particle: %@", largeParticle);
 
     UIView *current_view = [[CCDirector sharedDirector] view];
+    
+    NSLog(@"Current view: %@", current_view);
     
     // random location for large particle
     int xmin_large = (largeParticle.boundingBox.size.width)/2;
@@ -201,6 +284,8 @@ int currentSmallParticles = 0.0;
     
     // add the particles to the physicsNode of this scene (because it has physics enabled)
     [_physicsNode addChild:largeParticle];
+    
+    NSLog(@"Physics node: %@", _physicsNode);
 }
 
 // if device is shaken, apply a random force to all particles --doesn't work yet
@@ -355,6 +440,13 @@ int currentSmallParticles = 0.0;
 //right now removes them right away--after a delay would be better
 -(void) swipeLeft {
     
+    int numLargeParticles = (int)[self randomFloatBetween:MAX(0,currentLargeParticles - 50) andLargerFloat:currentLargeParticles];
+    int numSmallParticles = (int)[self randomFloatBetween:MAX(0, currentSmallParticles - 100) andLargerFloat:currentSmallParticles];
+    
+    [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
+}
+
+- (void) removeLargeParticles: (int) numLargeParticles andSmallParticles: (int) numSmallParticles {
     NSMutableArray *currentChildren = [_physicsNode.children copy];
     
     [_physicsNode.space setDamping:DAMPING];
@@ -364,25 +456,22 @@ int currentSmallParticles = 0.0;
     if (!isStacked) [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];       //only kick start if not stacked
     [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
-    int numLargeParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:MAX(20, currentLargeParticles)];
-    int numSmallParticles = (int)[self randomFloatBetween:1.0 andLargerFloat:MAX(50, currentSmallParticles)];
-    
     currentLargeParticles -= numLargeParticles;
     currentSmallParticles -= numSmallParticles;
     
     [self fadeOutParticles];
     
     /*/will produce errors if you try to remove more particles than there are
-    while (numLargeParticles > 0 && numSmallParticles > 0){
-        CCNode *lastChild = _physicsNode.children.lastObject;        //so that top of stacks are removed (instead of bottom)
-        if ([lastChild.name isEqual:(@"largeParticle")]){
-            numLargeParticles--;
-        }
-        else if ([lastChild.name isEqual:(@"smallParticle")]){
-            numSmallParticles--;
-        }
-        [_physicsNode removeChild:lastChild];
-    }*/
+     while (numLargeParticles > 0 && numSmallParticles > 0){
+     CCNode *lastChild = _physicsNode.children.lastObject;        //so that top of stacks are removed (instead of bottom)
+     if ([lastChild.name isEqual:(@"largeParticle")]){
+     numLargeParticles--;
+     }
+     else if ([lastChild.name isEqual:(@"smallParticle")]){
+     numSmallParticles--;
+     }
+     [_physicsNode removeChild:lastChild];
+     }*/
     
     for (int i = 0; i < numLargeParticles; i++){
         CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
@@ -394,7 +483,7 @@ int currentSmallParticles = 0.0;
     
     for (int i = 0; i < numSmallParticles; i++){
         CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
-
+        
         //[self performSelector:@selector(removeParticle:) withObject:oneSmallParticle afterDelay:PARTICLE_DELAY];
         //[currentChildren removeObject:oneSmallParticle];
         [_physicsNode removeChild:oneSmallParticle];

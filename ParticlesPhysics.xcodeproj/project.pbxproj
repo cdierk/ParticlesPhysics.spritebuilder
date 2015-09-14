@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		455D57C01AD48782008A95FD /* largeParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57BF1AD48782008A95FD /* largeParticle.m */; };
 		455D57C71AD48794008A95FD /* smallParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57C61AD48794008A95FD /* smallParticle.m */; };
+		45E0D0761BA3488A0072DDEC /* CustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D06D1BA3488A0072DDEC /* CustomCellBackground.m */; };
+		45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D06F1BA3488A0072DDEC /* RFduino.m */; };
+		45E0D0781BA3488A0072DDEC /* RfduinoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D0721BA3488A0072DDEC /* RfduinoManager.m */; };
+		45E0D0791BA3488A0072DDEC /* ScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D0751BA3488A0072DDEC /* ScanViewController.m */; };
 		5B121030197484FA004C1E1D /* ParticlesPhysicsActivity.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B12102F197484FA004C1E1D /* ParticlesPhysicsActivity.m */; };
 		5B121038197487F2004C1E1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B737893E1807617C0076A88C /* AppDelegate.m */; };
 		7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */ = {isa = PBXBuildFile; fileRef = B7378993180767190076A88C /* MainScene.m */; };
@@ -155,6 +159,16 @@
 		455D57BF1AD48782008A95FD /* largeParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = largeParticle.m; sourceTree = "<group>"; };
 		455D57C51AD48794008A95FD /* smallParticle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = smallParticle.h; sourceTree = "<group>"; };
 		455D57C61AD48794008A95FD /* smallParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = smallParticle.m; sourceTree = "<group>"; };
+		45E0D06C1BA3488A0072DDEC /* CustomCellBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomCellBackground.h; sourceTree = "<group>"; };
+		45E0D06D1BA3488A0072DDEC /* CustomCellBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomCellBackground.m; sourceTree = "<group>"; };
+		45E0D06E1BA3488A0072DDEC /* RFduino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFduino.h; sourceTree = "<group>"; };
+		45E0D06F1BA3488A0072DDEC /* RFduino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFduino.m; sourceTree = "<group>"; };
+		45E0D0701BA3488A0072DDEC /* RFduinoDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFduinoDelegate.h; sourceTree = "<group>"; };
+		45E0D0711BA3488A0072DDEC /* RfduinoManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RfduinoManager.h; sourceTree = "<group>"; };
+		45E0D0721BA3488A0072DDEC /* RfduinoManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RfduinoManager.m; sourceTree = "<group>"; };
+		45E0D0731BA3488A0072DDEC /* RFduinoManagerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFduinoManagerDelegate.h; sourceTree = "<group>"; };
+		45E0D0741BA3488A0072DDEC /* ScanViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanViewController.h; sourceTree = "<group>"; };
+		45E0D0751BA3488A0072DDEC /* ScanViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanViewController.m; sourceTree = "<group>"; };
 		5B12100919748273004C1E1D /* libEGL.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libEGL.so; path = /usr/lib/armv7a/libEGL.so; sourceTree = SDKROOT; };
 		5B12100F197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
 		5B121011197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
@@ -337,6 +351,16 @@
 			children = (
 				B737893D1807617C0076A88C /* AppDelegate.h */,
 				B737893E1807617C0076A88C /* AppDelegate.m */,
+				45E0D06C1BA3488A0072DDEC /* CustomCellBackground.h */,
+				45E0D06D1BA3488A0072DDEC /* CustomCellBackground.m */,
+				45E0D06E1BA3488A0072DDEC /* RFduino.h */,
+				45E0D06F1BA3488A0072DDEC /* RFduino.m */,
+				45E0D0701BA3488A0072DDEC /* RFduinoDelegate.h */,
+				45E0D0711BA3488A0072DDEC /* RfduinoManager.h */,
+				45E0D0721BA3488A0072DDEC /* RfduinoManager.m */,
+				45E0D0731BA3488A0072DDEC /* RFduinoManagerDelegate.h */,
+				45E0D0741BA3488A0072DDEC /* ScanViewController.h */,
+				45E0D0751BA3488A0072DDEC /* ScanViewController.m */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
@@ -826,9 +850,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45E0D0761BA3488A0072DDEC /* CustomCellBackground.m in Sources */,
+				45E0D0791BA3488A0072DDEC /* ScanViewController.m in Sources */,
+				45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */,
 				B73789871807631A0076A88C /* main.m in Sources */,
 				455D57C71AD48794008A95FD /* smallParticle.m in Sources */,
 				455D57C01AD48782008A95FD /* largeParticle.m in Sources */,
+				45E0D0781BA3488A0072DDEC /* RfduinoManager.m in Sources */,
 				7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */,
 				5B121038197487F2004C1E1D /* AppDelegate.m in Sources */,
 			);
