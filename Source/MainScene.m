@@ -10,6 +10,10 @@
     CCEffectStack *_effectStack;
     CCLabelTTF *_largeLabel;
     CCLabelTTF *_smallLabel;
+    NSMutableArray *_datapoints;
+    BEMSimpleLineGraphView *_largeGraph;
+    BEMSimpleLineGraphView *_smallGraph;
+    BEMSimpleLineGraphView *_totalGraph;
 }
 
 @synthesize rfduino;
@@ -26,6 +30,7 @@
 #define PARTICLE_CHECKING_DELAY 10.0
 
 BOOL isStacked = false;
+BOOL chartsShowing = false;
 int currentLargeParticles;
 int currentSmallParticles;
 
@@ -33,6 +38,8 @@ int currentSmallParticles;
 - (void)didLoadFromCCB {
     // tell this scene to accept touches
     self.userInteractionEnabled = TRUE;
+    
+    _datapoints = [NSMutableArray array];
     
     //[rfduino setDelegate:self];
     
@@ -53,35 +60,174 @@ int currentSmallParticles;
     swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeRight];
     
+    /*/set up listener for orientation changes
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];*/
+    
+    //listen for swipes up
+    UISwipeGestureRecognizer * swipeUp= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeUp)];
+    swipeUp.direction = UISwipeGestureRecognizerDirectionUp;
+    [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeUp];
+    
     _brightnessEffect = [CCEffectBrightness effectWithBrightness:sin(0)];
     _effectStack = [[CCEffectStack alloc] initWithEffects:_brightnessEffect, nil];
     
     currentLargeParticles = 0;
     currentSmallParticles = 0;
     
+    _largeGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 0, 320, 200)];
+    _largeGraph.delegate = self;
+    _largeGraph.dataSource = self;
+    _largeGraph.alpha = 1.0f;
+    _largeGraph.colorTop = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
+    _largeGraph.colorBottom = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
+    [[[CCDirector sharedDirector] view] addSubview:_largeGraph];
+    _largeGraph.hidden = true;
+    
+    _smallGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 200, 320, 200)];
+    _smallGraph.delegate = self;
+    _smallGraph.dataSource = self;
+    _smallGraph.alpha = 0.99f;
+    _smallGraph.colorTop = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.99f];
+    _smallGraph.colorBottom = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.99f];
+    [[[CCDirector sharedDirector] view] addSubview:_smallGraph];
+    _smallGraph.hidden = true;
+    
+    _totalGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 400, 320, 200)];
+    _totalGraph.delegate = self;
+    _totalGraph.dataSource = self;
+    _totalGraph.alpha = 0.98f;
+    _totalGraph.colorTop = [UIColor colorWithHue:195.0/360.0 saturation:0.0 brightness:0.69 alpha:0.98f];
+    _totalGraph.colorBottom = [UIColor colorWithHue:195.0/360.0 saturation:0.0 brightness:0.69 alpha:0.98f];
+    [[[CCDirector sharedDirector] view] addSubview:_totalGraph];
+    _totalGraph.hidden = true;
+    
+    inputLarge = 0;
+    inputSmall = 0;
+    
     [self checkDevice];
 }
 
-- (void) checkDevice {
-    NSLog(@"Checking device: %@", rfduino);
-    NSLog(@"Physics node: %@", _physicsNode);
-    if (rfduino.advertisementData){
-        NSString *advertising = @"";
-        if (rfduino.advertisementData) {
-            advertising = [[NSString alloc] initWithData:rfduino.advertisementData encoding:NSUTF8StringEncoding];
-            NSLog(@"advertisement: %@", advertising);
+// swipe Up recognizer -- displays charts
+- (void) swipeUp {
+    
+    for (CCNode *particle in _physicsNode.children) {
+        if ([particle.name isEqual:(@"largeParticle")]){
+            UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:0.0f];
+            particle.colorRGBA = [CCColor colorWithUIColor:teal];
+        } else if ([particle.name isEqual:(@"smallParticle")]){
+            UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.0f];
+            particle.colorRGBA = [CCColor colorWithUIColor:pink];
         }
-        
-        int numLargeParticles = [[advertising substringToIndex:4] intValue];
-        int numSmallParticles = [[advertising substringFromIndex:4] intValue];
-        NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
-        
-        NSLog(@"Physics node: %@", _physicsNode);
-        
-        [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
     }
-    else {
-        NSLog(@"no connected rfduino found");
+    
+    _largeGraph.hidden = false;
+    _smallGraph.hidden = false;
+    _totalGraph.hidden = false;
+    chartsShowing = true;
+    [_largeGraph reloadGraph];
+    [_smallGraph reloadGraph];
+    [_totalGraph reloadGraph];
+}
+
+//handler for orientation changes
+- (void) orientationChanged:(NSNotification *)note
+{
+    UIDevice * device = note.object;
+    switch(device.orientation)
+    {
+        case UIDeviceOrientationPortrait:
+            NSLog(@"portrait activated");
+            
+            for (CCNode *particle in _physicsNode.children) {
+                if ([particle.name isEqual:(@"largeParticle")]){
+                    UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:teal];
+                } else if ([particle.name isEqual:(@"smallParticle")]){
+                    UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:1.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:pink];
+                }
+            }
+            
+            _largeGraph.hidden = true;
+            _smallGraph.hidden = true;
+            _totalGraph.hidden = true;
+            
+            break;
+            
+        case UIDeviceOrientationLandscapeLeft:
+            NSLog(@"Landscape activated");
+            
+            for (CCNode *particle in _physicsNode.children) {
+                if ([particle.name isEqual:(@"largeParticle")]){
+                    UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:0.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:teal];
+                } else if ([particle.name isEqual:(@"smallParticle")]){
+                    UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:pink];
+                }
+            }
+            
+            _largeGraph.hidden = false;
+            [_largeGraph reloadGraph];
+            
+            _smallGraph.hidden = false;
+            [_smallGraph reloadGraph];
+            
+            _totalGraph.hidden = false;
+            [_totalGraph reloadGraph];
+            
+            break;
+            
+        case UIDeviceOrientationLandscapeRight:
+            NSLog(@"Landscape activated");
+            
+            for (CCNode *particle in _physicsNode.children) {
+                if ([particle.name isEqual:(@"largeParticle")]){
+                    UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:0.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:teal];
+                } else if ([particle.name isEqual:(@"smallParticle")]){
+                    UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.0f];
+                    particle.colorRGBA = [CCColor colorWithUIColor:pink];
+                }
+            }
+            
+            break;
+            
+        default:
+            break;
+    };
+}
+
+- (NSInteger)numberOfPointsInLineGraph:(BEMSimpleLineGraphView *)graph {
+    return [_datapoints count]; // Number of points in the graph.
+}
+
+- (CGFloat)lineGraph:(BEMSimpleLineGraphView *)graph valueForPointAtIndex:(NSInteger)index {
+    
+    NSMutableArray *datapoint = [_datapoints objectAtIndex:index];
+    
+    if (graph.alpha == 1.0f){
+        return [[datapoint objectAtIndex:1] integerValue]; // The value of the point on the Y-Axis for the index.       only large particles
+    }
+    if (graph.alpha == 0.99f){
+        return [[datapoint objectAtIndex:2] integerValue]; // The value of the point on the Y-Axis for the index.       only small particles
+    }
+    if (graph.alpha == 0.98f){
+        int total_particles = [[datapoint objectAtIndex:1] integerValue] + [[datapoint objectAtIndex:2] integerValue];
+        return total_particles;             //all particles
+    }
+    
+    return 0;
+}
+
+- (void) checkDevice {
+    
+    if ((inputLarge != currentLargeParticles) || (inputSmall != currentSmallParticles)){
+        [self updateLargeParticles:inputLarge andSmallParticles:inputSmall];
     }
     
     //recursive so always checking
@@ -89,26 +235,10 @@ int currentSmallParticles;
 }
 
 - (void) log:(RFduino *)rfduino_instance {
-    /*NSString *advertising = @"";
-    if (rfduino_instance.advertisementData) {
-        advertising = [[NSString alloc] initWithData:rfduino_instance.advertisementData encoding:NSUTF8StringEncoding];
-        NSLog(@"advertisement: %@", advertising);
-    }
-    
-    int numLargeParticles = [[advertising substringToIndex:4] intValue];
-    int numSmallParticles = [[advertising substringFromIndex:4] intValue];
-    NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
-    
-    NSLog(@"Physics node: %@", _physicsNode);
-    
-    [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
-    
-    //recursive so always checking
-    [self performSelector:@selector(log:) withObject:rfduino_instance afterDelay:PARTICLE_CHECKING_DELAY];*/
     rfduino = rfduino_instance;
     NSLog(@"log: rfduino is %@", rfduino);
     
-    [self checkDevice];
+    //[self checkDevice];
 }
 
 // called on every touch in this scene
@@ -131,7 +261,7 @@ int currentSmallParticles;
     [_physicsNode.space setDamping:DAMPING];
     
     //so that we don't fade in new particles
-    NSArray *currentChildren = [_physicsNode.children copy];
+    CCNode *currentChildren = [_physicsNode.children copy];
     
     //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
     [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
@@ -154,19 +284,34 @@ int currentSmallParticles;
     }
     
     while (numLargeParticles < currentLargeParticles){                 //remove particles
-        CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
-        [_physicsNode removeChild:oneLargeParticle];
+        [self performSelector:@selector(removeLargeParticle) withObject:nil afterDelay:PARTICLE_DELAY];
         currentLargeParticles--;
     }
     
     while (numSmallParticles < currentSmallParticles){
-        CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
-        [_physicsNode removeChild:oneSmallParticle];
+        [self performSelector:@selector(removeSmallParticle) withObject:nil afterDelay:PARTICLE_DELAY];
         currentSmallParticles--;
     }
     
     if (isStacked) [self stackParticles];
     if (isStacked) [self performSelector:@selector(stackParticles) withObject:nil afterDelay:PARTICLE_DELAY]; //restack new particles if stacked
+    
+    //add datapoints to array
+    NSNumber *largeParticlesNumber = [NSNumber numberWithInt:currentLargeParticles];
+    NSNumber *smallParticlesNumber = [NSNumber numberWithInt:currentSmallParticles];
+    NSDate *now = [NSDate date];
+    NSMutableArray *datapoint = [[NSMutableArray alloc] initWithObjects:now, largeParticlesNumber, smallParticlesNumber, nil];
+    [_datapoints addObject:datapoint];
+}
+
+- (void) removeLargeParticle {
+    CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
+    [_physicsNode removeChild:oneLargeParticle];
+}
+
+- (void) removeSmallParticle {
+    CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
+    [_physicsNode removeChild:oneSmallParticle];
 }
 
 - (void) fadeOutParticles {
@@ -188,10 +333,10 @@ int currentSmallParticles;
     
     if ([particle.name  isEqual: (@"largeParticle")]){
         UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:newSaturation brightness:0.66 alpha:1.0f];
-        particle.colorRGBA = [CCColor colorWithUIColor:teal];;
+        particle.colorRGBA = [CCColor colorWithUIColor:teal];
     } else if ([particle.name  isEqual: @"smallParticle"]){
         UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:newSaturation brightness:0.76 alpha:1.0f];
-        particle.colorRGBA = [CCColor colorWithUIColor:pink];;
+        particle.colorRGBA = [CCColor colorWithUIColor:pink];
     }
     
     //recurse
@@ -378,54 +523,27 @@ int currentSmallParticles;
 - (void)swipeDown {
     CCLOG(@"swipeDown");
     
+    if (chartsShowing){
+        for (CCNode *particle in _physicsNode.children) {
+            if ([particle.name isEqual:(@"largeParticle")]){
+                UIColor *teal = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
+                particle.colorRGBA = [CCColor colorWithUIColor:teal];
+            } else if ([particle.name isEqual:(@"smallParticle")]){
+                UIColor *pink = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:1.0f];
+                particle.colorRGBA = [CCColor colorWithUIColor:pink];
+            }
+        }
+        
+        _largeGraph.hidden = true;
+        _smallGraph.hidden = true;
+        _totalGraph.hidden = true;
+        chartsShowing = false;
+        return;
+    }
+    
     [_physicsNode.space setDamping:0.0f];        //reduce movement
     
     [self performSelector:@selector(stackParticles) withObject:nil afterDelay:0.1];
-    
-    /*_physicsNode.gravity = ccp(0,-1000);                //add gravity
-    _bottomBorder.physicsBody.elasticity = 0.0;         //remove elasticity of bottom border
-    
-    CGRect screenRect = [[UIScreen mainScreen] bounds];
-    CGFloat screenWidth = screenRect.size.width;
-    //CGFloat screenHeight = screenRect.size.height;
-    CGFloat division = screenWidth/2;
-    
-    for (CCNode *particle in _physicsNode.children) {
-        particle.physicsBody.elasticity = 0.0;          //remove elasticity of each particle
-        
-        if ([particle.name isEqual:(@"smallParticle")]){        //increase size of small particle
-            
-            particle.scale = LARGE_PARTICLE_SCALE;
-            
-            if (particle.position.x < division){
-                // manually create & apply a force to launch the particle
-                CGPoint launchDirection = ccp(1.0, 0);
-                CGPoint force = ccpMult(launchDirection, 100000);
-                [particle.physicsBody applyForce:force];
-            }
-        }
-        if ([particle.name isEqual:(@"largeParticle")]){        //increase size of large particle
-            if (particle.position.x > division){
-                // manually create & apply a force to launch the particle
-                CGPoint launchDirection = ccp(-1.0, 0);
-                CGPoint force = ccpMult(launchDirection, 100000);
-                [particle.physicsBody applyForce:force];
-            }
-        }
-        
-    }
-    
-    for (CCNode *particle in _physicsNode.children) {
-        if ([particle.name isEqual:(@"smallParticle")]){
-            
-        }
-        if ([particle.name isEqual:(@"largeParticle")]){
-            
-        }
-    }
-    
-    // to affect recently added particles
-    [self performSelector:@selector(affectNewParticles) withObject:nil afterDelay:PARTICLE_DELAY];*/
 }
 
 - (void) removeDamping {
@@ -444,52 +562,6 @@ int currentSmallParticles;
     int numSmallParticles = (int)[self randomFloatBetween:MAX(0, currentSmallParticles - 100) andLargerFloat:currentSmallParticles];
     
     [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
-}
-
-- (void) removeLargeParticles: (int) numLargeParticles andSmallParticles: (int) numSmallParticles {
-    NSMutableArray *currentChildren = [_physicsNode.children copy];
-    
-    [_physicsNode.space setDamping:DAMPING];
-    
-    //remove damping after freeze delay and apply random force to all particles to get moving, also adds color back
-    [self performSelector:@selector(removeDamping) withObject:nil afterDelay:FREEZE_DELAY];
-    if (!isStacked) [self performSelector:@selector(onShake) withObject:nil afterDelay:FREEZE_DELAY];       //only kick start if not stacked
-    [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
-    
-    currentLargeParticles -= numLargeParticles;
-    currentSmallParticles -= numSmallParticles;
-    
-    [self fadeOutParticles];
-    
-    /*/will produce errors if you try to remove more particles than there are
-     while (numLargeParticles > 0 && numSmallParticles > 0){
-     CCNode *lastChild = _physicsNode.children.lastObject;        //so that top of stacks are removed (instead of bottom)
-     if ([lastChild.name isEqual:(@"largeParticle")]){
-     numLargeParticles--;
-     }
-     else if ([lastChild.name isEqual:(@"smallParticle")]){
-     numSmallParticles--;
-     }
-     [_physicsNode removeChild:lastChild];
-     }*/
-    
-    for (int i = 0; i < numLargeParticles; i++){
-        CCNode *oneLargeParticle = [_physicsNode getChildByName:@"largeParticle" recursively:false];
-        
-        //[self performSelector:@selector(removeParticle:) withObject:oneLargeParticle afterDelay:PARTICLE_DELAY];
-        //[currentChildren removeObject:oneLargeParticle];
-        [_physicsNode removeChild:oneLargeParticle];
-    }
-    
-    for (int i = 0; i < numSmallParticles; i++){
-        CCNode *oneSmallParticle = [_physicsNode getChildByName:@"smallParticle" recursively:false];
-        
-        //[self performSelector:@selector(removeParticle:) withObject:oneSmallParticle afterDelay:PARTICLE_DELAY];
-        //[currentChildren removeObject:oneSmallParticle];
-        [_physicsNode removeChild:oneSmallParticle];
-    }
-    
-    if (isStacked) [self stackParticles];
 }
 
 - (void)affectNewParticles{

@@ -43,6 +43,9 @@
 }
 @end
 
+int inputLarge;
+int inputSmall;
+
 @implementation ScanViewController
 
 - (id)init
@@ -117,8 +120,24 @@
     [rfduinoManager stopScan];
     loadService = false;
     
-    MainScene *mainScene = [MainScene alloc];
-    [mainScene performSelector:@selector(log:) withObject:rfduino afterDelay:1.0];      //initial delay to give time for setup
+    //MainScene *mainScene = [MainScene alloc];
+    //[mainScene performSelector:@selector(log:) withObject:rfduino afterDelay:1.0];      //initial delay to give time for setup
+    
+    if (rfduino.advertisementData){
+        NSString *advertising = @"";
+        if (rfduino.advertisementData) {
+            advertising = [[NSString alloc] initWithData:rfduino.advertisementData encoding:NSUTF8StringEncoding];
+            NSLog(@"advertisement: %@", advertising);
+        }
+        
+        int numLargeParticles = [[advertising substringToIndex:4] intValue];
+        int numSmallParticles = [[advertising substringFromIndex:4] intValue];
+        NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
+        
+        inputLarge = numLargeParticles;
+        inputSmall = numSmallParticles;
+        
+    }
     
     //_connectedRFduino = rfduino;
 }

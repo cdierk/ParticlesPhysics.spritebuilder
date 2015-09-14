@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		455D57C01AD48782008A95FD /* largeParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57BF1AD48782008A95FD /* largeParticle.m */; };
 		455D57C71AD48794008A95FD /* smallParticle.m in Sources */ = {isa = PBXBuildFile; fileRef = 455D57C61AD48794008A95FD /* smallParticle.m */; };
+		45C6BB7C1BA748B70051649D /* BEMAverageLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 45C6BB731BA748B70051649D /* BEMAverageLine.m */; };
+		45C6BB7D1BA748B70051649D /* BEMCircle.m in Sources */ = {isa = PBXBuildFile; fileRef = 45C6BB751BA748B70051649D /* BEMCircle.m */; };
+		45C6BB7E1BA748B70051649D /* BEMLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 45C6BB771BA748B70051649D /* BEMLine.m */; };
+		45C6BB7F1BA748B70051649D /* BEMPermanentPopupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 45C6BB791BA748B70051649D /* BEMPermanentPopupView.m */; };
+		45C6BB801BA748B70051649D /* BEMSimpleLineGraphView.m in Sources */ = {isa = PBXBuildFile; fileRef = 45C6BB7B1BA748B70051649D /* BEMSimpleLineGraphView.m */; };
+		45C6BB821BA748D20051649D /* Classes in Resources */ = {isa = PBXBuildFile; fileRef = 45C6BB811BA748D20051649D /* Classes */; };
+		45C6BB831BA765470051649D /* MainScene.h in Sources */ = {isa = PBXBuildFile; fileRef = B7378992180767190076A88C /* MainScene.h */; };
 		45E0D0761BA3488A0072DDEC /* CustomCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D06D1BA3488A0072DDEC /* CustomCellBackground.m */; };
 		45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D06F1BA3488A0072DDEC /* RFduino.m */; };
 		45E0D0781BA3488A0072DDEC /* RfduinoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D0721BA3488A0072DDEC /* RfduinoManager.m */; };
@@ -159,6 +166,17 @@
 		455D57BF1AD48782008A95FD /* largeParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = largeParticle.m; sourceTree = "<group>"; };
 		455D57C51AD48794008A95FD /* smallParticle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = smallParticle.h; sourceTree = "<group>"; };
 		455D57C61AD48794008A95FD /* smallParticle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = smallParticle.m; sourceTree = "<group>"; };
+		45C6BB721BA748B70051649D /* BEMAverageLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BEMAverageLine.h; path = Classes/BEMAverageLine.h; sourceTree = "<group>"; };
+		45C6BB731BA748B70051649D /* BEMAverageLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BEMAverageLine.m; path = Classes/BEMAverageLine.m; sourceTree = "<group>"; };
+		45C6BB741BA748B70051649D /* BEMCircle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BEMCircle.h; path = Classes/BEMCircle.h; sourceTree = "<group>"; };
+		45C6BB751BA748B70051649D /* BEMCircle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BEMCircle.m; path = Classes/BEMCircle.m; sourceTree = "<group>"; };
+		45C6BB761BA748B70051649D /* BEMLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BEMLine.h; path = Classes/BEMLine.h; sourceTree = "<group>"; };
+		45C6BB771BA748B70051649D /* BEMLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BEMLine.m; path = Classes/BEMLine.m; sourceTree = "<group>"; };
+		45C6BB781BA748B70051649D /* BEMPermanentPopupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BEMPermanentPopupView.h; path = Classes/BEMPermanentPopupView.h; sourceTree = "<group>"; };
+		45C6BB791BA748B70051649D /* BEMPermanentPopupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BEMPermanentPopupView.m; path = Classes/BEMPermanentPopupView.m; sourceTree = "<group>"; };
+		45C6BB7A1BA748B70051649D /* BEMSimpleLineGraphView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BEMSimpleLineGraphView.h; path = Classes/BEMSimpleLineGraphView.h; sourceTree = "<group>"; };
+		45C6BB7B1BA748B70051649D /* BEMSimpleLineGraphView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BEMSimpleLineGraphView.m; path = Classes/BEMSimpleLineGraphView.m; sourceTree = "<group>"; };
+		45C6BB811BA748D20051649D /* Classes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Classes; sourceTree = "<group>"; };
 		45E0D06C1BA3488A0072DDEC /* CustomCellBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomCellBackground.h; sourceTree = "<group>"; };
 		45E0D06D1BA3488A0072DDEC /* CustomCellBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomCellBackground.m; sourceTree = "<group>"; };
 		45E0D06E1BA3488A0072DDEC /* RFduino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFduino.h; sourceTree = "<group>"; };
@@ -466,6 +484,17 @@
 		B737893C1807616C0076A88C /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				45C6BB811BA748D20051649D /* Classes */,
+				45C6BB721BA748B70051649D /* BEMAverageLine.h */,
+				45C6BB731BA748B70051649D /* BEMAverageLine.m */,
+				45C6BB741BA748B70051649D /* BEMCircle.h */,
+				45C6BB751BA748B70051649D /* BEMCircle.m */,
+				45C6BB761BA748B70051649D /* BEMLine.h */,
+				45C6BB771BA748B70051649D /* BEMLine.m */,
+				45C6BB781BA748B70051649D /* BEMPermanentPopupView.h */,
+				45C6BB791BA748B70051649D /* BEMPermanentPopupView.m */,
+				45C6BB7A1BA748B70051649D /* BEMSimpleLineGraphView.h */,
+				45C6BB7B1BA748B70051649D /* BEMSimpleLineGraphView.m */,
 				455D57C51AD48794008A95FD /* smallParticle.h */,
 				455D57C61AD48794008A95FD /* smallParticle.m */,
 				455D57BE1AD48782008A95FD /* largeParticle.h */,
@@ -639,7 +668,7 @@
 		B77F1B2617B978D7009739AE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = Apportable;
 				TargetAttributes = {
 					7A4035FE19DDEE84007B6E8F = {
@@ -766,6 +795,7 @@
 				B71F5914188484E7003F4D28 /* iPad@2x.png in Resources */,
 				B71F5913188484E7003F4D28 /* iPad.png in Resources */,
 				B71F5912188484E7003F4D28 /* iPad-old@2x.png in Resources */,
+				45C6BB821BA748D20051649D /* Classes in Resources */,
 				B71F5916188484E7003F4D28 /* iPhone-old@2x.png in Resources */,
 				B737893B180761570076A88C /* Published-iOS in Resources */,
 				B71F591A188484E7003F4D28 /* Settings@2x.png in Resources */,
@@ -850,12 +880,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45C6BB831BA765470051649D /* MainScene.h in Sources */,
+				45C6BB801BA748B70051649D /* BEMSimpleLineGraphView.m in Sources */,
+				45C6BB7C1BA748B70051649D /* BEMAverageLine.m in Sources */,
+				45C6BB7F1BA748B70051649D /* BEMPermanentPopupView.m in Sources */,
 				45E0D0761BA3488A0072DDEC /* CustomCellBackground.m in Sources */,
 				45E0D0791BA3488A0072DDEC /* ScanViewController.m in Sources */,
 				45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */,
+				45C6BB7D1BA748B70051649D /* BEMCircle.m in Sources */,
 				B73789871807631A0076A88C /* main.m in Sources */,
 				455D57C71AD48794008A95FD /* smallParticle.m in Sources */,
 				455D57C01AD48782008A95FD /* largeParticle.m in Sources */,
+				45C6BB7E1BA748B70051649D /* BEMLine.m in Sources */,
 				45E0D0781BA3488A0072DDEC /* RfduinoManager.m in Sources */,
 				7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */,
 				5B121038197487F2004C1E1D /* AppDelegate.m in Sources */,
@@ -1085,6 +1121,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					DEBUG,
@@ -1118,6 +1155,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					NDEBUG,
 					"NS_BLOCK_ASSERTIONS=1",

@@ -1,6 +1,10 @@
 #import "RFduino.h"
+#import "BEMSimpleLineGraphView.h"
 
-@interface MainScene : CCNode
+extern int inputLarge;
+extern int inputSmall;
+
+@interface MainScene : CCNode <BEMSimpleLineGraphDelegate, BEMSimpleLineGraphDataSource>
 
 @property(strong, nonatomic) RFduino *rfduino;
 @property CCPhysicsNode *_physicsNode;
