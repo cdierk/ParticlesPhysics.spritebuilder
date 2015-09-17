@@ -198,7 +198,7 @@ int currentSmallParticles;
     
     
     //UNCOMMENT ME
-    //[self checkDevice];
+    [self checkDevice];
     
     //[self generateCSVfile];
 }
@@ -441,7 +441,7 @@ int currentSmallParticles;
     NSArray *data = [[NSArray alloc] initWithObjects: largeString, smallString, latString, longString, nil];
     
     //UNCOMMENT ME
-    //[self performSelector:@selector(textMeLarge:) withObject:data afterDelay:PARTICLE_DELAY];
+    [self performSelector:@selector(textMeLarge:) withObject:data afterDelay:PARTICLE_DELAY];
 }
 
 - (void) removeLargeParticle {

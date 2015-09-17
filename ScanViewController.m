@@ -132,8 +132,8 @@ int inputSmall;
         
         NSArray *items = [advertising componentsSeparatedByString:@","];
         
-        int numLargeParticles = [[items objectAtIndex:0] intValue];
-        int numSmallParticles = [[items objectAtIndex:1] intValue];
+        int numSmallParticles = [[items objectAtIndex:0] intValue];
+        int numLargeParticles = [[items objectAtIndex:1] intValue];
         NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
         
         inputLarge = numLargeParticles;
