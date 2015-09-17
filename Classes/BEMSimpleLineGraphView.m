@@ -120,6 +120,8 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 @end
 
+int touchXlocation;
+
 @implementation BEMSimpleLineGraphView
 
 #pragma mark - Initialization
@@ -152,9 +154,9 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     _colorLine = [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:1];
     _colorBottom = [UIColor colorWithRed:0 green:122.0/255.0 blue:255/255 alpha:1];
     _colorPoint = [UIColor whiteColor];
-    _colorTouchInputLine = [UIColor grayColor];
+    _colorTouchInputLine = [UIColor whiteColor];
     _colorBackgroundPopUplabel = [UIColor whiteColor];
-    _alphaTouchInputLine = 0.2;
+    _alphaTouchInputLine = 0.9;
     _widthTouchInputLine = 1.0;
     _colorBackgroundXaxis = nil;
     _alphaBackgroundXaxis = 1.0;
@@ -322,9 +324,13 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     // If the touch report is enabled, set it up
     if (self.enableTouchReport == YES || self.enablePopUpReport == YES) {
         // Initialize the vertical gray line that appears where the user touches the graph.
-        self.touchInputLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.widthTouchInputLine, self.frame.size.height)];
+        
+        CGRect screenRect = [[UIScreen mainScreen] bounds];
+        CGFloat screenHeight = screenRect.size.height;
+        
+        self.touchInputLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.widthTouchInputLine, screenHeight)];
         self.touchInputLine.backgroundColor = self.colorTouchInputLine;
-        self.touchInputLine.alpha = 0;
+        self.touchInputLine.alpha = 1.0;
         [self addSubview:self.touchInputLine];
         
         self.panView = [[UIView alloc] initWithFrame:CGRectMake(10, 10, self.viewForBaselineLayout.frame.size.width, self.viewForBaselineLayout.frame.size.height)];
@@ -1314,6 +1320,8 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     
     if (!((translation.x + self.frame.origin.x) <= self.frame.origin.x) && !((translation.x + self.frame.origin.x) >= self.frame.origin.x + self.frame.size.width)) { // To make sure the vertical line doesn't go beyond the frame of the graph.
         self.touchInputLine.frame = CGRectMake(translation.x - self.widthTouchInputLine/2, 0, self.widthTouchInputLine, self.frame.size.height);
+        
+        touchXlocation = translation.x - self.widthTouchInputLine/2;
     }
     
     self.touchInputLine.alpha = self.alphaTouchInputLine;

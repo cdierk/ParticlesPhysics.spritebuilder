@@ -18,6 +18,11 @@
     BEMSimpleLineGraphView *_smallGraph;
     BEMSimpleLineGraphView *_totalGraph;
     CLLocationManager *locationManager;
+    UILabel *lbl1;
+    UILabel *lbl2;
+    UILabel *lbl3;
+    UILabel *lbl4;
+    UIView *lineView;
 }
 
 @synthesize _physicsNode;
@@ -51,7 +56,6 @@ int currentSmallParticles;
     
     //to update screen with auto-running particles from most current reading
     if (_datapoints){
-        NSLog(@"There's data!");
         ParticleDataPointDoc *most_current_reading = [_datapoints lastObject];
         int oldLargeParticles = most_current_reading.data.numLargeParticles;
         int oldSmallParticles = most_current_reading.data.numSmallParticles;
@@ -68,16 +72,16 @@ int currentSmallParticles;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeDown];
     
     // COMMENT ME OUT
-    // listen for swipes left -- only for testing purposes
+    /*/ listen for swipes left -- only for testing purposes
     UISwipeGestureRecognizer * swipeLeft= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeLeft)];
     swipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
-    [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeLeft];
+    [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeLeft];*/
     
     //COMMENT ME OUT
-    // listen for swipes right -- only for testing purposes
+    /*/ listen for swipes right -- only for testing purposes
     UISwipeGestureRecognizer * swipeRight= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeRight)];
     swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
-    [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeRight];
+    [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeRight];*/
     
     //listen for swipes up
     UISwipeGestureRecognizer * swipeUp= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeUp)];
@@ -95,6 +99,8 @@ int currentSmallParticles;
     _largeGraph.colorBottom = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
     [[[CCDirector sharedDirector] view] addSubview:_largeGraph];
     _largeGraph.hidden = true;
+    _largeGraph.enableTouchReport = YES;
+    _largeGraph.colorTouchInputLine = [UIColor colorWithHue:183.0/360.0 saturation:1.0 brightness:0.66 alpha:1.0f];
     
     _smallGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 200, 320, 200)];
     _smallGraph.delegate = self;
@@ -104,6 +110,8 @@ int currentSmallParticles;
     _smallGraph.colorBottom = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.99f];
     [[[CCDirector sharedDirector] view] addSubview:_smallGraph];
     _smallGraph.hidden = true;
+    _smallGraph.enableTouchReport = YES;
+    _smallGraph.colorTouchInputLine = [UIColor colorWithHue:300.0/360.0 saturation:1.0 brightness:0.76 alpha:0.99f];
     
     _totalGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 400, 320, 200)];
     _totalGraph.delegate = self;
@@ -113,6 +121,8 @@ int currentSmallParticles;
     _totalGraph.colorBottom = [UIColor colorWithHue:195.0/360.0 saturation:0.0 brightness:0.69 alpha:0.98f];
     [[[CCDirector sharedDirector] view] addSubview:_totalGraph];
     _totalGraph.hidden = true;
+    _totalGraph.enableTouchReport = YES;
+    _totalGraph.colorTouchInputLine = [UIColor colorWithHue:195.0/360.0 saturation:0.0 brightness:0.69 alpha:0.98f];
     
     inputLarge = 0;
     inputSmall = 0;
@@ -123,6 +133,69 @@ int currentSmallParticles;
     [locationManager startUpdatingLocation];
     
     [locationManager requestAlwaysAuthorization]; //Note this one
+    
+    UIView *current_view = [[CCDirector sharedDirector] view];
+    
+    lbl1 = [[UILabel alloc] init];
+    [lbl1 setFrame:CGRectMake(5,5,200,20)];
+    lbl1.backgroundColor=[UIColor clearColor];
+    lbl1.textColor=[UIColor whiteColor];
+    lbl1.userInteractionEnabled=NO;
+    [current_view addSubview:lbl1];
+    lbl1.text= @"number of large particles";
+    lbl1.hidden = true;
+    
+    lbl2 = [[UILabel alloc] init];
+    [lbl2 setFrame:CGRectMake(5,205,200,20)];
+    lbl2.backgroundColor=[UIColor clearColor];
+    lbl2.textColor=[UIColor whiteColor];
+    lbl2.userInteractionEnabled=NO;
+    [current_view addSubview:lbl2];
+    lbl2.text= @"number of small particles";
+    lbl2.hidden = true;
+    
+    lbl3 = [[UILabel alloc] init];
+    [lbl3 setFrame:CGRectMake(5,405,200,20)];
+    lbl3.backgroundColor=[UIColor clearColor];
+    lbl3.textColor=[UIColor whiteColor];
+    lbl3.userInteractionEnabled=NO;
+    [current_view addSubview:lbl3];
+    lbl3.text= @"total number of particles";
+    lbl3.hidden = true;
+    
+    lbl4 = [[UILabel alloc] init];
+    [lbl4 setFrame:CGRectMake(5,355,200,20)];
+    lbl4.backgroundColor=[UIColor clearColor];
+    lbl4.textColor=[UIColor whiteColor];
+    lbl4.userInteractionEnabled=NO;
+    [current_view addSubview:lbl4];
+    lbl4.text= @"date";
+    lbl4.hidden = true;
+    
+    lineView = [[UIView alloc] initWithFrame:CGRectMake(200, 0, 1, current_view.frame.size.height)];
+    lineView.backgroundColor = [UIColor whiteColor];
+    lineView.alpha = 0.9;
+    [current_view addSubview:lineView];
+    lineView.hidden = true;
+    
+    /*/to clear dataset--uncomment and run twice, then uncomment next chunk and run once
+    for (ParticleDataPointDoc *datapoint in _datapoints){
+        [datapoint deleteDoc];
+    }*/
+    
+    /*/add two 0,0 datapoints to dataset for graphing purposes
+    float latitude = locationManager.location.coordinate.latitude;
+    float longitude = locationManager.location.coordinate.longitude;
+    NSDate *now = [NSDate date];
+    
+    ParticleDataPointDoc *datapointdoc = [[ParticleDataPointDoc alloc] initWithDate:now numLargeParticles:0 numSmallParticles:0 latitude:latitude longitude:longitude];
+    [datapointdoc saveData];
+    [_datapoints addObject:datapointdoc];
+    
+    datapointdoc = [[ParticleDataPointDoc alloc] initWithDate:now numLargeParticles:0 numSmallParticles:0 latitude:latitude longitude:longitude];
+    [datapointdoc saveData];
+    [_datapoints addObject:datapointdoc];*/
+    
     
     //UNCOMMENT ME
     //[self checkDevice];
@@ -213,10 +286,45 @@ int currentSmallParticles;
     _largeGraph.hidden = false;
     _smallGraph.hidden = false;
     _totalGraph.hidden = false;
+    lbl1.hidden = false;
+    lbl2.hidden = false;
+    lbl3.hidden = false;
     chartsShowing = true;
     [_largeGraph reloadGraph];
     [_smallGraph reloadGraph];
     [_totalGraph reloadGraph];
+}
+
+- (void)lineGraph:(BEMSimpleLineGraphView *)graph didTouchGraphWithClosestIndex:(NSInteger)index {
+
+    ParticleDataPointDoc *datapoint = [_datapoints objectAtIndex:index];
+    int numLarge = datapoint.data.numLargeParticles;
+    int numSmall = datapoint.data.numSmallParticles;
+    lbl1.text = [NSString stringWithFormat:@"%d large particles", numLarge];
+    lbl2.text = [NSString stringWithFormat:@"%d small particles", numSmall];
+    lbl3.text = [NSString stringWithFormat:@"%d particles total", numLarge + numSmall];
+    
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+    
+    lbl4.hidden = false;
+    lbl4.text = [dateFormatter stringFromDate:datapoint.data.date];
+    
+    UIView *current_view = [[CCDirector sharedDirector] view];
+    
+    lineView.frame = CGRectMake(touchXlocation, 0, 1, current_view.frame.size.height);
+    lineView.hidden = false;
+}
+
+- (void)lineGraph:(BEMSimpleLineGraphView *)graph didReleaseTouchFromGraphWithClosestIndex:(CGFloat)index {
+
+    lbl1.text = @"number of large particles";
+    lbl2.text = @"number of small particles";
+    lbl3.text = @"total number of particles";
+    
+    lineView.hidden = true;
+    lbl4.hidden = true;
 }
 
 - (NSInteger)numberOfPointsInLineGraph:(BEMSimpleLineGraphView *)graph {
@@ -576,6 +684,9 @@ int currentSmallParticles;
         _largeGraph.hidden = true;
         _smallGraph.hidden = true;
         _totalGraph.hidden = true;
+        lbl1.hidden = true;
+        lbl2.hidden = true;
+        lbl3.hidden = true;
         chartsShowing = false;
         return;
     }
