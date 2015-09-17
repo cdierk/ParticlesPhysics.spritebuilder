@@ -193,7 +193,7 @@ static CBUUID *service_uuid;
 
         ScanViewController *viewController = [ScanViewController alloc];
         if ([viewController respondsToSelector:@selector(shouldDisplayAlertTitled:messageBody:)]) {
-            [viewController shouldDisplayAlertTitled:@"Peripheral Disconnected with Error" messageBody:error.description];
+            //[viewController shouldDisplayAlertTitled:@"Peripheral Disconnected with Error" messageBody:error.description];
         }
         
     }
@@ -222,8 +222,14 @@ static CBUUID *service_uuid;
 
     bool added = false;
 
+    
     RFduino *rfduino = [self rfduinoForPeripheral:peripheral];
-    if (! rfduino) {
+    if ([rfduinos containsObject:rfduino]) [rfduinos removeObject:rfduino];
+    rfduino = [self rfduinoForPeripheral:peripheral];
+    
+    //shortcut so that we can keep receiving from rfduino
+    //if (! rfduino) {
+        NSLog(@"! rfduino");
         rfduino = [[RFduino alloc] init];
         
         rfduino.rfduinoManager = self;
@@ -235,7 +241,7 @@ static CBUUID *service_uuid;
         added = true;
         
         [rfduinos addObject:rfduino];
-    }
+    //}
     
     rfduino.advertisementData = nil;
     
@@ -254,6 +260,7 @@ static CBUUID *service_uuid;
     rfduino.outOfRange = false;
     
     if (added) {
+        NSLog(@"successfully added");
         ScanViewController *viewController = [ScanViewController alloc];
         [viewController didDiscoverRFduino:rfduino];
     } else {

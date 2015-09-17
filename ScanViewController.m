@@ -130,8 +130,10 @@ int inputSmall;
             NSLog(@"advertisement: %@", advertising);
         }
         
-        int numLargeParticles = [[advertising substringToIndex:4] intValue];
-        int numSmallParticles = [[advertising substringFromIndex:4] intValue];
+        NSArray *items = [advertising componentsSeparatedByString:@","];
+        
+        int numLargeParticles = [[items objectAtIndex:0] intValue];
+        int numSmallParticles = [[items objectAtIndex:1] intValue];
         NSLog(@"%d, %d", numLargeParticles, numSmallParticles);
         
         inputLarge = numLargeParticles;

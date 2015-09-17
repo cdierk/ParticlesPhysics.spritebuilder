@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #import "CCPhysics+ObjectiveChipmunk.h"
 #import "ScanViewController.h"
+#import "ParticleDataPoint.h"
+#import "ParticleDataPointDoc.h"
+#import "ParticleDatabase.h"
+#import <CoreLocation/CoreLocation.h>
 
 @implementation MainScene{
     //CCPhysicsNode *_physicsNode;
@@ -10,14 +14,14 @@
     CCEffectStack *_effectStack;
     CCLabelTTF *_largeLabel;
     CCLabelTTF *_smallLabel;
-    NSMutableArray *_datapoints;
     BEMSimpleLineGraphView *_largeGraph;
     BEMSimpleLineGraphView *_smallGraph;
     BEMSimpleLineGraphView *_totalGraph;
+    CLLocationManager *locationManager;
 }
 
-@synthesize rfduino;
 @synthesize _physicsNode;
+@synthesize datapoints = _datapoints;
 
 #define ARC4RANDOM_MAX 0x100000000
 #define LARGE_PARTICLE_SCALE 0.5
@@ -27,7 +31,7 @@
 #define EXPLOSION_LENGTH 3.0
 #define DAMPING 0.2f
 #define PARTICLE_BASE_SIZE 24.0
-#define PARTICLE_CHECKING_DELAY 10.0
+#define PARTICLE_CHECKING_DELAY 2.0
 
 BOOL isStacked = false;
 BOOL chartsShowing = false;
@@ -40,7 +44,19 @@ int currentSmallParticles;
     // tell this scene to accept touches
     self.userInteractionEnabled = TRUE;
     
-    _datapoints = [NSMutableArray array];
+    currentLargeParticles = 0;
+    currentSmallParticles = 0;
+    
+    _datapoints = [ParticleDatabase loadParticleDataPointDocs];
+    
+    //to update screen with auto-running particles from most current reading
+    if (_datapoints){
+        NSLog(@"There's data!");
+        ParticleDataPointDoc *most_current_reading = [_datapoints lastObject];
+        int oldLargeParticles = most_current_reading.data.numLargeParticles;
+        int oldSmallParticles = most_current_reading.data.numSmallParticles;
+        [self initial_update_withLarge:oldLargeParticles andSmall:oldSmallParticles];
+    }
     
     //[rfduino setDelegate:self];
     
@@ -51,22 +67,17 @@ int currentSmallParticles;
     swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeDown];
     
+    // COMMENT ME OUT
     // listen for swipes left -- only for testing purposes
     UISwipeGestureRecognizer * swipeLeft= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeLeft)];
     swipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeLeft];
     
+    //COMMENT ME OUT
     // listen for swipes right -- only for testing purposes
     UISwipeGestureRecognizer * swipeRight= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeRight)];
     swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
     [[[CCDirector sharedDirector] view] addGestureRecognizer:swipeRight];
-    
-    /*/set up listener for orientation changes
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(orientationChanged:)
-     name:UIDeviceOrientationDidChangeNotification
-     object:[UIDevice currentDevice]];*/
     
     //listen for swipes up
     UISwipeGestureRecognizer * swipeUp= [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(swipeUp)];
@@ -75,9 +86,6 @@ int currentSmallParticles;
     
     _brightnessEffect = [CCEffectBrightness effectWithBrightness:sin(0)];
     _effectStack = [[CCEffectStack alloc] initWithEffects:_brightnessEffect, nil];
-    
-    currentLargeParticles = 0;
-    currentSmallParticles = 0;
     
     _largeGraph = [[BEMSimpleLineGraphView alloc] initWithFrame:CGRectMake(0, 0, 320, 200)];
     _largeGraph.delegate = self;
@@ -109,7 +117,84 @@ int currentSmallParticles;
     inputLarge = 0;
     inputSmall = 0;
     
+    locationManager = [[CLLocationManager alloc] init];
+    locationManager.distanceFilter = kCLDistanceFilterNone;
+    locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+    [locationManager startUpdatingLocation];
+    
+    [locationManager requestAlwaysAuthorization]; //Note this one
+    
+    //UNCOMMENT ME
     //[self checkDevice];
+    
+    //[self generateCSVfile];
+}
+
+-(NSString *)dataFilePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    return [documentsDirectory stringByAppendingPathComponent:@"myPartData.csv"];
+}
+
+- (void) generateCSVfile {
+    
+    /*if (![[NSFileManager defaultManager] fileExistsAtPath:[self dataFilePath]]) {
+        [[NSFileManager defaultManager] createFileAtPath: [self dataFilePath] contents:nil attributes:nil];
+        NSLog(@"Route creato");
+    }*/
+    
+    NSMutableString *writeString = [NSMutableString stringWithCapacity:0];
+    
+    //NSMutableString *csv = [NSMutableString stringWithString:@"Date,numLarge,numSmall, lat, lon"];
+    
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+    
+    for (ParticleDataPointDoc *datapoint in _datapoints){
+        NSDate *date = datapoint.data.date;
+        
+        [writeString appendString:[NSString stringWithFormat:@"%@, %d, %d, %f, %f, \n",
+                                                 [dateFormatter stringFromDate:date],
+                                                 datapoint.data.numLargeParticles,
+                                                 datapoint.data.numSmallParticles,
+                                                 datapoint.data.latitude,
+                                                 datapoint.data.longitude]];
+    }
+    
+    NSLog(@"writeString :%@",writeString);
+    
+    /*NSString *yourFileName = @"myPartData";
+    NSError *error;
+    BOOL res = [csv writeToFile:yourFileName atomically:YES encoding:NSUTF8StringEncoding error:&error];
+    
+    if (!res) {
+        NSLog(@"Error %@ while writing to file %@", [error localizedDescription], yourFileName );
+    }*/
+    
+   /* NSFileHandle *handle;
+    handle = [NSFileHandle fileHandleForWritingAtPath: [self dataFilePath] ];
+    //say to handle where's the file fo write
+    [handle truncateFileAtOffset:[handle seekToEndOfFile]];
+    //position handle cursor to the end of file
+    [handle writeData:[writeString dataUsingEncoding:NSUTF8StringEncoding]];*/
+}
+
+//needed so that we don't restore initial values--a lot smaller than other update method because we don't need delays and there are initially no particles, so none need to be deleted
+- (void) initial_update_withLarge: (int) numLargeParticles andSmall: (int) numSmallParticles {
+    NSLog(@"updateLargeParticles: %d, updateSmallParticles: %d", numLargeParticles, numSmallParticles);
+    
+    while (numLargeParticles > currentLargeParticles) {                 //need to add more
+        [self launchLargeParticle];
+        currentLargeParticles++;
+    }
+    
+    while (numSmallParticles > currentSmallParticles){                  //need to add more
+        [self launchSmallParticle];
+        currentSmallParticles++;
+    }
+    
+    [self onShake];
 }
 
 // swipe Up recognizer -- displays charts
@@ -140,16 +225,16 @@ int currentSmallParticles;
 
 - (CGFloat)lineGraph:(BEMSimpleLineGraphView *)graph valueForPointAtIndex:(NSInteger)index {
     
-    NSMutableArray *datapoint = [_datapoints objectAtIndex:index];
+    ParticleDataPointDoc *datapointdoc = [_datapoints objectAtIndex:index];
     
     if (graph.alpha == 1.0f){
-        return [[datapoint objectAtIndex:1] integerValue]; // The value of the point on the Y-Axis for the index.       only large particles
+        return datapointdoc.data.numLargeParticles; // The value of the point on the Y-Axis for the index.       only large particles
     }
     if (graph.alpha == 0.99f){
-        return [[datapoint objectAtIndex:2] integerValue]; // The value of the point on the Y-Axis for the index.       only small particles
+        return datapointdoc.data.numSmallParticles; // The value of the point on the Y-Axis for the index.       only small particles
     }
     if (graph.alpha == 0.98f){
-        int total_particles = [[datapoint objectAtIndex:1] integerValue] + [[datapoint objectAtIndex:2] integerValue];
+        int total_particles = datapointdoc.data.numLargeParticles + datapointdoc.data.numSmallParticles;
         return total_particles;             //all particles
     }
     
@@ -164,13 +249,6 @@ int currentSmallParticles;
     
     //recursive so always checking
     [self performSelector:@selector(checkDevice) withObject:nil afterDelay:PARTICLE_CHECKING_DELAY];
-}
-
-- (void) log:(RFduino *)rfduino_instance {
-    rfduino = rfduino_instance;
-    NSLog(@"log: rfduino is %@", rfduino);
-    
-    //[self checkDevice];
 }
 
 // called on every touch in this scene
@@ -210,7 +288,7 @@ int currentSmallParticles;
     if (!isStacked) [self performSelector:@selector(kickStart) withObject:nil afterDelay:FREEZE_DELAY];   //only kick start new particles if not stacked
     [self performSelector:@selector(fadeInParticles:) withObject:currentChildren afterDelay:FREEZE_DELAY];
     
-    NSLog(@"currents: %d, %d", currentLargeParticles, currentSmallParticles);
+    //NSLog(@"currents: %d, %d", currentLargeParticles, currentSmallParticles);
     
     [self fadeOutParticles];
     
@@ -238,11 +316,24 @@ int currentSmallParticles;
     if (isStacked) [self performSelector:@selector(stackParticles) withObject:nil afterDelay:PARTICLE_DELAY]; //restack new particles if stacked
     
     //add datapoints to array
-    NSNumber *largeParticlesNumber = [NSNumber numberWithInt:currentLargeParticles];
-    NSNumber *smallParticlesNumber = [NSNumber numberWithInt:currentSmallParticles];
     NSDate *now = [NSDate date];
-    NSMutableArray *datapoint = [[NSMutableArray alloc] initWithObjects:now, largeParticlesNumber, smallParticlesNumber, nil];
-    [_datapoints addObject:datapoint];
+    
+    float latitude = locationManager.location.coordinate.latitude;
+    float longitude = locationManager.location.coordinate.longitude;
+    
+    ParticleDataPointDoc *datapointdoc = [[ParticleDataPointDoc alloc] initWithDate:now numLargeParticles:currentLargeParticles numSmallParticles:currentSmallParticles latitude:latitude longitude:longitude];
+    [datapointdoc saveData];
+    [_datapoints addObject:datapointdoc];
+    
+    NSString *largeString = [NSString stringWithFormat:@"%d", numLargeParticles];
+    NSString *smallString = [NSString stringWithFormat:@"%d", numSmallParticles];
+    NSString *latString = [NSString stringWithFormat:@"%f", latitude];
+    NSString *longString = [NSString stringWithFormat:@"%f", longitude];
+    
+    NSArray *data = [[NSArray alloc] initWithObjects: largeString, smallString, latString, longString, nil];
+    
+    //UNCOMMENT ME
+    //[self performSelector:@selector(textMeLarge:) withObject:data afterDelay:PARTICLE_DELAY];
 }
 
 - (void) removeLargeParticle {
@@ -342,17 +433,17 @@ int currentSmallParticles;
 }
 
 - (void)launchLargeParticle {
-    NSLog(@"large launched");
+    //NSLog(@"large launched");
     
     // loads the particle.cbb files we have set up in Spritebuilder
     CCNode* largeParticle = [CCBReader load:@"largeParticle"];
     largeParticle.scale = LARGE_PARTICLE_SCALE;
     
-    NSLog(@"Large particle: %@", largeParticle);
+    //NSLog(@"Large particle: %@", largeParticle);
 
     UIView *current_view = [[CCDirector sharedDirector] view];
     
-    NSLog(@"Current view: %@", current_view);
+    //NSLog(@"Current view: %@", current_view);
     
     // random location for large particle
     int xmin_large = (largeParticle.boundingBox.size.width)/2;
@@ -374,7 +465,7 @@ int currentSmallParticles;
     // add the particles to the physicsNode of this scene (because it has physics enabled)
     [_physicsNode addChild:largeParticle];
     
-    NSLog(@"Physics node: %@", _physicsNode);
+    //NSLog(@"Physics node: %@", _physicsNode);
     inUpdate = false;
 }
 
@@ -517,6 +608,46 @@ int currentSmallParticles;
     int numSmallParticles = (int)[self randomFloatBetween:MAX(0, currentSmallParticles - 100) andLargerFloat:currentSmallParticles];
     
     [self updateLargeParticles:numLargeParticles andSmallParticles:numSmallParticles];
+}
+
+//for text messaging
+- (void)textMeLarge: (NSArray*) info {
+    NSLog(@"Sending request.");
+    
+    int large = [[info objectAtIndex:0] intValue];
+    int small = [[info objectAtIndex:1] intValue];
+    float lat = [[info objectAtIndex:2] floatValue];
+    float lon = [[info objectAtIndex:3] floatValue];
+    
+    // Common constants
+    NSString *kTwilioSID = @"AC3d3fbeb7b9936974870fa9e449c7b66a";
+    NSString *kTwilioSecret = @"1f2ec3e1a3fa41997fe49117c22e44b0";
+    NSString *kFromNumber = @"+19192952547";
+    NSString *kToNumber = @"+15303888667";
+    NSString *kMessage = [NSString stringWithFormat:@"large: %d, small: %d, lat: %f, long: %f, \n", large, small, lat, lon];
+    
+    // Build request
+    NSString *urlString = [NSString stringWithFormat:@"https://%@:%@@api.twilio.com/2010-04-01/Accounts/%@/SMS/Messages", kTwilioSID, kTwilioSecret, kTwilioSID];
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:url];
+    [request setHTTPMethod:@"POST"];
+    
+    // Set up the body
+    NSString *bodyString = [NSString stringWithFormat:@"From=%@&To=%@&Body=%@", kFromNumber, kToNumber, kMessage];
+    NSData *data = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
+    [request setHTTPBody:data];
+    NSError *error;
+    NSURLResponse *response;
+    NSData *receivedData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    
+    // Handle the received data
+    if (error) {
+        NSLog(@"Error: %@", error);
+    } else {
+        NSString *receivedString = [[NSString alloc]initWithData:receivedData encoding:NSUTF8StringEncoding];
+        NSLog(@"Request sent. %@", receivedString);
+    }
 }
 
 @end

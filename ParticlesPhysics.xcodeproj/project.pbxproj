@@ -20,6 +20,10 @@
 		45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D06F1BA3488A0072DDEC /* RFduino.m */; };
 		45E0D0781BA3488A0072DDEC /* RfduinoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D0721BA3488A0072DDEC /* RfduinoManager.m */; };
 		45E0D0791BA3488A0072DDEC /* ScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 45E0D0751BA3488A0072DDEC /* ScanViewController.m */; };
+		45F0E7461BA8F38C00479025 /* ParticleDataPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 45F0E7451BA8F38C00479025 /* ParticleDataPoint.m */; };
+		45F0E74B1BA902AF00479025 /* ParticleDataPointDoc.m in Sources */ = {isa = PBXBuildFile; fileRef = 45F0E74A1BA902AF00479025 /* ParticleDataPointDoc.m */; };
+		45F0E74E1BA906E900479025 /* ParticleDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 45F0E74D1BA906E900479025 /* ParticleDatabase.m */; };
+		45F0E7501BA9281C00479025 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 45F0E74F1BA9281C00479025 /* CoreLocation.framework */; };
 		5B121030197484FA004C1E1D /* ParticlesPhysicsActivity.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B12102F197484FA004C1E1D /* ParticlesPhysicsActivity.m */; };
 		5B121038197487F2004C1E1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B737893E1807617C0076A88C /* AppDelegate.m */; };
 		7A046D8C19E8A20E004C4763 /* MainScene.m in Sources */ = {isa = PBXBuildFile; fileRef = B7378993180767190076A88C /* MainScene.m */; };
@@ -187,6 +191,13 @@
 		45E0D0731BA3488A0072DDEC /* RFduinoManagerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFduinoManagerDelegate.h; sourceTree = "<group>"; };
 		45E0D0741BA3488A0072DDEC /* ScanViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanViewController.h; sourceTree = "<group>"; };
 		45E0D0751BA3488A0072DDEC /* ScanViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanViewController.m; sourceTree = "<group>"; };
+		45F0E7441BA8F38C00479025 /* ParticleDataPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleDataPoint.h; sourceTree = "<group>"; };
+		45F0E7451BA8F38C00479025 /* ParticleDataPoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParticleDataPoint.m; sourceTree = "<group>"; };
+		45F0E7491BA902AF00479025 /* ParticleDataPointDoc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleDataPointDoc.h; sourceTree = "<group>"; };
+		45F0E74A1BA902AF00479025 /* ParticleDataPointDoc.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParticleDataPointDoc.m; sourceTree = "<group>"; };
+		45F0E74C1BA906E900479025 /* ParticleDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleDatabase.h; sourceTree = "<group>"; };
+		45F0E74D1BA906E900479025 /* ParticleDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParticleDatabase.m; sourceTree = "<group>"; };
+		45F0E74F1BA9281C00479025 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		5B12100919748273004C1E1D /* libEGL.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libEGL.so; path = /usr/lib/armv7a/libEGL.so; sourceTree = SDKROOT; };
 		5B12100F197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
 		5B121011197483EE004C1E1D /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
@@ -294,6 +305,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45F0E7501BA9281C00479025 /* CoreLocation.framework in Frameworks */,
 				7A97911819E631CD001FFC4D /* libcocos2d.a in Frameworks */,
 				8392007A18EE8E3300B6C429 /* GLKit.framework in Frameworks */,
 				B77F1B3217B978D7009739AE /* QuartzCore.framework in Frameworks */,
@@ -503,6 +515,12 @@
 				B7378992180767190076A88C /* MainScene.h */,
 				B7378993180767190076A88C /* MainScene.m */,
 				D352B48019EC608A00829775 /* MetalShaders */,
+				45F0E7441BA8F38C00479025 /* ParticleDataPoint.h */,
+				45F0E7451BA8F38C00479025 /* ParticleDataPoint.m */,
+				45F0E7491BA902AF00479025 /* ParticleDataPointDoc.h */,
+				45F0E74A1BA902AF00479025 /* ParticleDataPointDoc.m */,
+				45F0E74C1BA906E900479025 /* ParticleDatabase.h */,
+				45F0E74D1BA906E900479025 /* ParticleDatabase.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -553,6 +571,7 @@
 		B77F1B3017B978D7009739AE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				45F0E74F1BA9281C00479025 /* CoreLocation.framework */,
 				BC5399D31A44DCC90063F482 /* AndroidKit.framework */,
 				BC5399D41A44DCC90063F482 /* CoreJava.framework */,
 				BC5399D51A44DCC90063F482 /* GLActivityKit.framework */,
@@ -882,12 +901,15 @@
 			files = (
 				45C6BB831BA765470051649D /* MainScene.h in Sources */,
 				45C6BB801BA748B70051649D /* BEMSimpleLineGraphView.m in Sources */,
+				45F0E74E1BA906E900479025 /* ParticleDatabase.m in Sources */,
 				45C6BB7C1BA748B70051649D /* BEMAverageLine.m in Sources */,
 				45C6BB7F1BA748B70051649D /* BEMPermanentPopupView.m in Sources */,
 				45E0D0761BA3488A0072DDEC /* CustomCellBackground.m in Sources */,
 				45E0D0791BA3488A0072DDEC /* ScanViewController.m in Sources */,
+				45F0E7461BA8F38C00479025 /* ParticleDataPoint.m in Sources */,
 				45E0D0771BA3488A0072DDEC /* RFduino.m in Sources */,
 				45C6BB7D1BA748B70051649D /* BEMCircle.m in Sources */,
+				45F0E74B1BA902AF00479025 /* ParticleDataPointDoc.m in Sources */,
 				B73789871807631A0076A88C /* main.m in Sources */,
 				455D57C71AD48794008A95FD /* smallParticle.m in Sources */,
 				455D57C01AD48782008A95FD /* largeParticle.m in Sources */,
